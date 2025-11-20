@@ -1,0 +1,5 @@
+name: iqp-videos
+channels:
+  - conda-forge
+  - defaults
+prefix: C:\Users\adamf\miniconda3\envs\iqp-videos

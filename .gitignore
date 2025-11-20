@@ -1,0 +1,6 @@
+# Ignore all media directories everywhere
+media/
+**/media/
+# Ignore all pycache directories everywhere
+__pycache__/
+**/__pycache__/
