@@ -1,6 +1,11 @@
 """
-Scene 1: Title Card
-A simple but elegant title card animation that introduces the video.
+Scene 1: Title Card - Universal Gravitation
+
+This is the opening title card for Video 1 of the IQP Physics Education project.
+The title card introduces the topic "Universal Gravitation" with an elegant animation.
+
+From the transcript (lines 38-40), this scene appears after the live-action hook
+where balls are dropped, transitioning into the manim animation portion.
 """
 
 import sys
@@ -21,7 +26,13 @@ from utils.objects import (
 
 class Scene1(Scene):
     """
-    Title card scene with animated entrance.
+    Scene 1: Title Card - "Universal Gravitation"
+    
+    From PDF transcript lines 38-40:
+    [VISUAL: Fade to manim animation]
+    [MANIM: Title card with "Universal Gravitation" animates in]
+    
+    Duration: ~5 seconds total
     
     To render this scene, run:
     python -m manim -pqh "video_1/scene_1.py" Scene1
@@ -31,17 +42,15 @@ class Scene1(Scene):
         # Set background color
         self.camera.background_color = BACKGROUND_COLOR
         
-        # Create the title card
-        # CUSTOMIZE THESE STRINGS FOR YOUR VIDEO
+        # Create the title card - "Universal Gravitation" from PDF
         title_card = TitleCard(
-            "Your Video Title",
-            "Episode 1: Introduction"
+            "Universal Gravitation",
+            "Short Video Projects on Physics Education"
         )
         
-        # Optional: Add a logo
-        logo = create_logo(scale=0.3)
-        logo.to_edge(DOWN, buff=0.3)
-        logo.to_edge(RIGHT, buff=0.3)
+        # Add logo in bottom right corner
+        logo = create_logo(scale=0.2)
+        logo.to_corner(DR, buff=0.5)
         
         # Position title card in center
         title_card.move_to(ORIGIN)
@@ -60,15 +69,14 @@ class Scene1(Scene):
             self.play(fade_in_with_scale(title_card, run_time=1.5))
         
         # 3. Hold on the title card
-        self.wait(2)
+        self.wait(2.5)
         
-        # 4. Optional: Fade out everything before next scene
-        # Uncomment if you want the title card to fade out
-        # self.play(
-        #     FadeOut(title_card),
-        #     FadeOut(logo),
-        #     run_time=1
-        # )
+        # 4. Fade out everything before next scene
+        self.play(
+            FadeOut(title_card),
+            FadeOut(logo),
+            run_time=1
+        )
 
 
 class Scene1Alternate(Scene):

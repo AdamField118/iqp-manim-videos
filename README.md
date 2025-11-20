@@ -3,5 +3,5 @@ Here I will have my manim animations coded, along with commonly used utils like 
 
 To render a scene/video, try this command
 ```
-python -m manim -pqh "/path/to/py-file" SceneName
+python -m manim -pqh "/path/to/py-file" SceneName --media_dir "./directory/of/py-file/media"
 ```
