@@ -28,7 +28,8 @@ from utils.objects import (
 from utils.physics_objects import (
     create_mass,
     create_earth,
-    create_ball
+    create_ball,
+    create_fbd_force_arrows
 )
 
 
@@ -57,15 +58,19 @@ class Scene5(Scene):
         
         # PART 1: Review title (lines 192)
         self.review_title()
+        self.wait(2)
         
         # PART 2: Key points (lines 193-206)
         self.key_points()
+        self.wait(2)
         
         # PART 3: Final demonstration (lines 207-209)
         self.final_demo()
+        self.wait(2)
         
         # PART 4: Preview next video (lines 210-213)
         self.preview_next()
+        self.wait(2)
         
         # PART 5: End card (lines 214-218)
         self.end_card()
@@ -94,13 +99,18 @@ class Scene5(Scene):
         Lines 193-206: Show three main concepts
         """
         # Point 1: Gravity is universal (lines 195-197)
+        icon1_circle1 = Circle(radius=0.2, color=BLUE, fill_opacity=0.5)
+        icon1_circle2 = Circle(radius=0.15, color=RED, fill_opacity=0.5).shift(RIGHT * 0.5 + UP * 0.3)
         icon1 = VGroup(
             Circle(radius=0.2, color=BLUE, fill_opacity=0.5),
             Circle(radius=0.15, color=RED, fill_opacity=0.5).shift(RIGHT * 0.5 + UP * 0.3),
-            Arrow(
-                LEFT * 0.15, RIGHT * 0.35,
-                color=YELLOW, stroke_width=2, buff=0
-            ).scale(0.5)
+            create_fbd_force_arrows(
+                icon1_circle1,
+                icon1_circle2,
+                arrow_length=0.25,
+                color=YELLOW,
+                stroke_width=4
+            )
         )
         icon1.shift(LEFT * 4 + UP * 0.8)
         
@@ -170,43 +180,99 @@ class Scene5(Scene):
         
         self.play(FadeIn(title))
         
-        # Show quick version of cancellation
-        equation = MathTex(
-            "G \\frac{M_{Earth} \\cdot m}{r^2} = m a",
-            font_size=64
-        )
-        equation.shift(UP * 0.5)
+        # Manually compose equation: G * M_Earth * m / r^2 = m * a
+        g_part = MathTex("G", font_size=64)
+        
+        # Left fraction
+        numerator_left = MathTex("M_{Earth} \\cdot m", font_size=48)
+        frac_line_left = Line(LEFT * 1.0, RIGHT * 1.0, color=WHITE, stroke_width=2)
+        denominator_left = MathTex("r^2", font_size=48)
+        
+        # Position left fraction
+        frac_line_left.move_to(UP * 0.5)
+        numerator_left.next_to(frac_line_left, UP, buff=0.15)
+        denominator_left.next_to(frac_line_left, DOWN, buff=0.15)
+        
+        fraction_left = VGroup(numerator_left, frac_line_left, denominator_left)
+        
+        # Position left side
+        g_part.move_to(LEFT * 2.5 + UP * 0.5)
+        fraction_left.next_to(g_part, RIGHT, buff=0.3)
+        
+        # Right side: = m * a
+        equals = MathTex("=", font_size=64)
+        m_right = MathTex("m", font_size=64)
+        a_right = MathTex("a", font_size=64)
+        
+        equals.next_to(fraction_left, RIGHT, buff=0.4)
+        m_right.next_to(equals, RIGHT, buff=0.3)
+        a_right.next_to(m_right, RIGHT, buff=0.3)
+        
+        equation = VGroup(g_part, fraction_left, equals, m_right, a_right)
+        equation.move_to(UP * 0.5)
         
         self.play(Write(equation, run_time=1))
         
-        # Add boxes around the m's
-        m1_box = Rectangle(width=0.3, height=0.4, stroke_color=RED, stroke_width=3, fill_opacity=0)
-        m1_box.move_to(equation.get_center() + LEFT * 1.2 + UP * 0.3)
+        # Create boxes around BOTH m's using SurroundingRectangle
+        # The m in the numerator is the last character of "M_{Earth} \cdot m"
+        m_in_numerator_box = SurroundingRectangle(
+            numerator_left[0][-1:],  # Last character is the small m
+            color=RED,
+            stroke_width=3,
+            buff=0.08
+        )
         
-        m2_box = Rectangle(width=0.3, height=0.4, stroke_color=RED, stroke_width=3, fill_opacity=0)
-        m2_box.move_to(equation.get_center() + RIGHT * 1.8)
+        m_on_right_box = SurroundingRectangle(
+            m_right,
+            color=RED,
+            stroke_width=3,
+            buff=0.08
+        )
         
-        self.play(Create(m1_box), Create(m2_box), run_time=0.5)
+        self.play(Create(m_in_numerator_box), Create(m_on_right_box), run_time=0.5)
         
-        # Quick X marks
+        # Create X marks using the boxes
         cross1 = VGroup(
-            Line(m1_box.get_corner(DL), m1_box.get_corner(UR), color=RED, stroke_width=4),
-            Line(m1_box.get_corner(UL), m1_box.get_corner(DR), color=RED, stroke_width=4)
+            Line(m_in_numerator_box.get_corner(DL), m_in_numerator_box.get_corner(UR), 
+                color=RED, stroke_width=4),
+            Line(m_in_numerator_box.get_corner(UL), m_in_numerator_box.get_corner(DR), 
+                color=RED, stroke_width=4)
         )
         cross2 = VGroup(
-            Line(m2_box.get_corner(DL), m2_box.get_corner(UR), color=RED, stroke_width=4),
-            Line(m2_box.get_corner(UL), m2_box.get_corner(DR), color=RED, stroke_width=4)
+            Line(m_on_right_box.get_corner(DL), m_on_right_box.get_corner(UR), 
+                color=RED, stroke_width=4),
+            Line(m_on_right_box.get_corner(UL), m_on_right_box.get_corner(DR), 
+                color=RED, stroke_width=4)
         )
         
         self.play(Create(cross1), Create(cross2), run_time=0.6)
+        self.wait(0.5)
         
-        # Final result
-        result = MathTex(
-            "a = G\\frac{M_{Earth}}{r^2}",
-            font_size=72,
-            color=ACCENT_COLOR
-        )
-        result.shift(DOWN * 1)
+        # Final result - manually compose
+        a_final = MathTex("a", font_size=72, color=ACCENT_COLOR)
+        eq_final = MathTex("=", font_size=72, color=ACCENT_COLOR)
+        g_final = MathTex("G", font_size=72, color=ACCENT_COLOR)
+        
+        # Final fraction (without m)
+        num_final = MathTex("M_{Earth}", font_size=54, color=ACCENT_COLOR)
+        frac_line_final = Line(LEFT * 0.7, RIGHT * 0.7, color=ACCENT_COLOR, stroke_width=2)
+        denom_final = MathTex("r^2", font_size=54, color=ACCENT_COLOR)
+        
+        # Position final fraction
+        frac_line_final.move_to(DOWN * 1)
+        num_final.next_to(frac_line_final, UP, buff=0.15)
+        denom_final.next_to(frac_line_final, DOWN, buff=0.15)
+        
+        fraction_final = VGroup(num_final, frac_line_final, denom_final)
+        
+        # Position left side
+        a_final.move_to(LEFT * 1.5 + DOWN * 1)
+        eq_final.next_to(a_final, RIGHT, buff=0.3)
+        g_final.next_to(eq_final, RIGHT, buff=0.3)
+        fraction_final.next_to(g_final, RIGHT, buff=0.3)
+        
+        result = VGroup(a_final, eq_final, g_final, fraction_final)
+        result.move_to(DOWN * 1)
         
         self.play(Write(result, run_time=1))
         
@@ -220,7 +286,8 @@ class Scene5(Scene):
         
         # Clean up
         self.play(
-            *[FadeOut(mob) for mob in [title, equation, m1_box, m2_box, cross1, cross2, result, insight]],
+            *[FadeOut(mob) for mob in [title, equation, m_in_numerator_box, m_on_right_box, 
+                                        cross1, cross2, result, insight]],
             run_time=0.8
         )
     

@@ -120,6 +120,7 @@ def create_force_arrow(start_point, end_point, label="F", color=YELLOW, label_po
 def create_attraction_arrows(obj1, obj2, color=YELLOW, label1="F", label2="F"):
     """
     Create bidirectional attraction arrows between two objects.
+    (Old style - arrows go from edge to edge)
     
     Args:
         obj1: First object
@@ -151,6 +152,59 @@ def create_attraction_arrows(obj1, obj2, color=YELLOW, label1="F", label2="F"):
     
     arrow1 = Arrow(start1, end1, color=color, stroke_width=4, buff=0)
     arrow2 = Arrow(start2, end2, color=color, stroke_width=4, buff=0)
+    
+    return VGroup(arrow1, arrow2)
+
+
+def create_fbd_force_arrows(obj1, obj2, arrow_length=1.0, color=YELLOW, stroke_width=4):
+    """
+    Create free body diagram style force arrows - fixed length arrows pointing 
+    from the center of each object toward the other object.
+    
+    Args:
+        obj1: First object
+        obj2: Second object  
+        arrow_length: Length of each arrow (in Manim units)
+        color: Color of arrows
+        stroke_width: Thickness of arrows
+    
+    Returns:
+        VGroup containing both arrows (one from each object's center)
+    """
+    center1 = obj1.get_center()
+    center2 = obj2.get_center()
+    
+    # Calculate direction from obj1 to obj2
+    direction_1_to_2 = center2 - center1
+    distance = np.linalg.norm(direction_1_to_2)
+    unit_direction_1_to_2 = direction_1_to_2 / distance if distance > 0 else direction_1_to_2
+    
+    # Direction from obj2 to obj1 is opposite
+    unit_direction_2_to_1 = -unit_direction_1_to_2
+    
+    # Create arrow from center of obj1 pointing toward obj2
+    arrow1_start = center1
+    arrow1_end = center1 + unit_direction_1_to_2 * arrow_length
+    arrow1 = Arrow(
+        arrow1_start, 
+        arrow1_end, 
+        color=color, 
+        stroke_width=stroke_width, 
+        buff=0,
+        max_tip_length_to_length_ratio=0.25
+    )
+    
+    # Create arrow from center of obj2 pointing toward obj1
+    arrow2_start = center2
+    arrow2_end = center2 + unit_direction_2_to_1 * arrow_length
+    arrow2 = Arrow(
+        arrow2_start, 
+        arrow2_end, 
+        color=color, 
+        stroke_width=stroke_width, 
+        buff=0,
+        max_tip_length_to_length_ratio=0.25
+    )
     
     return VGroup(arrow1, arrow2)
 

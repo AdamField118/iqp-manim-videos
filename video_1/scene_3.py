@@ -28,7 +28,8 @@ from utils.objects import (
 from utils.physics_objects import (
     create_mass,
     create_earth,
-    create_force_arrow
+    create_force_arrow,
+    create_fbd_force_arrows
 )
 
 
@@ -107,12 +108,33 @@ class Scene3(Scene):
         Lines 82-99: Show F = G m₁m₂/r² and explain each variable
         """
         # Line 82: "Equation fades in gracefully"
-        equation = MathTex(
-            "F", "=", "G", "\\frac{m_1 m_2}{r^2}",
-            font_size=72
-        )
-        equation.set_color(WHITE)
-        equation.shift(UP * 1.5)
+        # Create equation by manually composing parts
+        f_part = MathTex("F", font_size=72)
+        equals = MathTex("=", font_size=72)
+        g_part = MathTex("G", font_size=72)
+        
+        # Fraction parts - numerator and denominator
+        numerator = MathTex("m_1 m_2", font_size=48)
+        fraction_line = Line(LEFT * 0.6, RIGHT * 0.6, color=WHITE, stroke_width=2)
+        denominator = MathTex("r^2", font_size=48)
+        
+        # Position the fraction
+        fraction_line.shift(UP * 1.5)
+        numerator.next_to(fraction_line, UP, buff=0.15)
+        denominator.next_to(fraction_line, DOWN, buff=0.15)
+        
+        # Group the fraction
+        fraction = VGroup(numerator, fraction_line, denominator)
+        
+        # Position left side of equation
+        f_part.shift(UP * 1.5 + LEFT * 3)
+        equals.next_to(f_part, RIGHT, buff=0.3)
+        g_part.next_to(equals, RIGHT, buff=0.3)
+        fraction.next_to(g_part, RIGHT, buff=0.3)
+        
+        # Create the full equation group
+        equation = VGroup(f_part, equals, g_part, fraction)
+        equation.move_to(UP * 1.5)
         
         self.play(FadeIn(equation, scale=1.2), run_time=1.5)
         self.wait(1)
@@ -128,43 +150,39 @@ class Scene3(Scene):
         self.play(FadeOut(reassurance))
         
         # Line 90: Highlight F - "F is the force of gravity"
-        self.play(equation[0].animate.set_color(YELLOW), run_time=0.5)
+        self.play(f_part.animate.set_color(YELLOW), run_time=0.5)
         
         f_label = StyledText("Force of gravity")
         f_label.scale(0.5)
-        f_label.next_to(equation[0], DOWN, buff=0.8)
+        f_label.next_to(f_part, DOWN, buff=0.8)
         f_label.set_color(YELLOW)
         
         self.play(FadeIn(f_label, shift=UP * 0.2))
         self.wait(1)
         self.play(
-            equation[0].animate.set_color(WHITE),
+            f_part.animate.set_color(WHITE),
             FadeOut(f_label)
         )
         
         # Lines 91-92: Show two masses with labels m₁ and m₂
-        # Create separate equation to highlight masses
-        equation_split = MathTex(
-            "F", "=", "G", "\\frac{", "m_1", "m_2", "}{r^2}",
-            font_size=72
-        )
-        equation_split.move_to(equation)
+        # Highlight the numerator (m_1 m_2)
+        self.play(numerator.animate.set_color(BLUE), run_time=0.5)
         
-        self.play(Transform(equation, equation_split))
+        # Show label for masses
+        mass_label = StyledText("Mass of object 1 × Mass of object 2")
+        mass_label.scale(0.5)
+        mass_label.next_to(fraction, DOWN, buff=0.8)
+        mass_label.set_color(BLUE)
         
-        # Highlight m₁ and m₂
-        self.play(
-            equation[4].animate.set_color(BLUE),  # m₁
-            equation[5].animate.set_color(RED),   # m₂
-            run_time=0.5
-        )
+        self.play(FadeIn(mass_label, shift=UP * 0.2))
+        self.wait(0.5)
         
         # Show two masses below
         mass1 = create_mass(label="m_1", radius=0.4, color=BLUE)
         mass2 = create_mass(label="m_2", radius=0.5, color=RED)
         
-        mass1.shift(DOWN * 1.8 + LEFT * 1.5)
-        mass2.shift(DOWN * 1.8 + RIGHT * 1.5)
+        mass1.shift(DOWN * 2.5 + LEFT * 1.5)
+        mass2.shift(DOWN * 2.5 + RIGHT * 1.5)
         
         self.play(
             FadeIn(mass1, scale=0.5),
@@ -172,17 +190,21 @@ class Scene3(Scene):
         )
         self.wait(1)
         
-        # Lines 93-95: Show distance r
-        equation_r = MathTex(
-            "F", "=", "G", "\\frac{m_1 m_2}{", "r", "^2}",
-            font_size=72
+        self.play(
+            numerator.animate.set_color(WHITE),
+            FadeOut(mass_label)
         )
-        equation_r.move_to(equation)
         
-        self.play(Transform(equation, equation_r))
+        # Lines 93-95: Show distance r
+        # Highlight the denominator (r^2)
+        self.play(denominator.animate.set_color(GREEN), run_time=0.5)
         
-        # Highlight r
-        self.play(equation[4].animate.set_color(GREEN), run_time=0.5)
+        r_label = StyledText("Distance between objects (squared)")
+        r_label.scale(0.5)
+        r_label.next_to(fraction, DOWN, buff=0.8)
+        r_label.set_color(GREEN)
+        
+        self.play(FadeIn(r_label, shift=UP * 0.2))
         
         # Draw line between masses showing r
         distance_line = Line(
@@ -200,24 +222,19 @@ class Scene3(Scene):
         )
         self.wait(1.5)
         
-        # Lines 96-99: Highlight G - "very tiny number"
-        equation_g = MathTex(
-            "F", "=", "G", "\\frac{m_1 m_2}{r^2}",
-            font_size=72
-        )
-        equation_g.move_to(equation)
-        
         self.play(
-            Transform(equation, equation_g),
+            denominator.animate.set_color(WHITE),
+            FadeOut(r_label),
             FadeOut(distance_line),
             FadeOut(distance_label)
         )
         
-        self.play(equation[2].animate.set_color(ACCENT_COLOR), run_time=0.5)
+        # Lines 96-99: Highlight G - "very tiny number"
+        self.play(g_part.animate.set_color(ACCENT_COLOR), run_time=0.5)
         
-        g_label = StyledText("Very tiny number!")
+        g_label = StyledText("Gravitational constant")
         g_label.scale(0.5)
-        g_label.next_to(equation[2], UP, buff=0.5)
+        g_label.next_to(g_part, UP, buff=0.5)
         g_label.set_color(ACCENT_COLOR)
         
         g_value = MathTex(
@@ -225,11 +242,17 @@ class Scene3(Scene):
             font_size=36,
             color=ACCENT_COLOR
         )
-        g_value.next_to(g_label, DOWN, buff=0.2)
+        g_value.next_to(g_part, DOWN, buff=0.5)
+        
+        tiny_text = StyledText("(Very tiny number!)")
+        tiny_text.scale(0.4)
+        tiny_text.next_to(g_value, DOWN, buff=0.1)
+        tiny_text.set_color(ACCENT_COLOR)
         
         self.play(
             FadeIn(g_label),
-            FadeIn(g_value, shift=UP * 0.1)
+            FadeIn(g_value, shift=UP * 0.1),
+            FadeIn(tiny_text, shift=UP * 0.1)
         )
         self.wait(1.5)
         
@@ -237,6 +260,7 @@ class Scene3(Scene):
         self.play(
             FadeOut(g_label),
             FadeOut(g_value),
+            FadeOut(tiny_text),
             FadeOut(mass1),
             FadeOut(mass2),
             equation.animate.set_color(WHITE),
@@ -258,26 +282,26 @@ class Scene3(Scene):
             run_time=0.8
         )
         
-        # Create two masses with force arrow
+        # Create two masses with force arrows
         mass1 = create_mass(label="m_1", radius=0.5, color=BLUE)
         mass2 = create_mass(label="m_2", radius=0.5, color=RED)
         
         mass1.shift(LEFT * 2)
         mass2.shift(RIGHT * 2)
         
-        # Force arrow
-        arrow = Arrow(
-            mass1.get_right() + RIGHT * 0.1,
-            mass2.get_left() + LEFT * 0.1,
+        # Initial force arrows (normal length)
+        arrows = create_fbd_force_arrows(
+            mass1, 
+            mass2, 
+            arrow_length=1.0,
             color=YELLOW,
-            stroke_width=6,
-            buff=0
+            stroke_width=6
         )
         
         self.play(
             FadeIn(mass1),
             FadeIn(mass2),
-            Create(arrow)
+            Create(arrows)
         )
         self.wait(0.5)
         
@@ -288,11 +312,20 @@ class Scene3(Scene):
         
         self.play(FadeIn(text1))
         
-        # Animate masses getting LARGER, arrow grows
+        # Create LONGER arrows for stronger force
+        longer_arrows = create_fbd_force_arrows(
+            mass1, 
+            mass2, 
+            arrow_length=1.6,
+            color=YELLOW,
+            stroke_width=8
+        )
+        
+        # Animate masses getting LARGER and arrows getting LONGER simultaneously
         self.play(
             mass1.animate.scale(1.5),
             mass2.animate.scale(1.5),
-            arrow.animate.scale_to_fit_width(arrow.width * 1.3).set_stroke(width=10),
+            Transform(arrows, longer_arrows),
             run_time=1.5
         )
         
@@ -304,36 +337,36 @@ class Scene3(Scene):
         self.play(FadeIn(text2))
         self.wait(1)
         
-        # Reset
+        # Reset - fade out everything
         self.play(
             FadeOut(text1),
-            FadeOut(text2)
-        )
-        
-        # Recreate at normal size
-        self.play(
+            FadeOut(text2),
             FadeOut(mass1),
             FadeOut(mass2),
-            FadeOut(arrow)
+            FadeOut(arrows)
         )
         
+        # Recreate at normal size for distance demonstration
         mass1 = create_mass(label="m_1", radius=0.5, color=BLUE)
         mass2 = create_mass(label="m_2", radius=0.5, color=RED)
         mass1.shift(LEFT * 2)
         mass2.shift(RIGHT * 2)
-        arrow = Arrow(
-            mass1.get_right() + RIGHT * 0.1,
-            mass2.get_left() + LEFT * 0.1,
+        
+        # Normal arrows again
+        arrows = create_fbd_force_arrows(
+            mass1, 
+            mass2, 
+            arrow_length=1.0,
             color=YELLOW,
-            stroke_width=6,
-            buff=0
+            stroke_width=6
         )
         
         self.play(
             FadeIn(mass1),
             FadeIn(mass2),
-            Create(arrow)
+            Create(arrows)
         )
+        self.wait(0.3)
         
         # Text: "Farther apart..."
         text3 = StyledText("Farther apart →")
@@ -342,11 +375,28 @@ class Scene3(Scene):
         
         self.play(FadeIn(text3))
         
-        # Animate masses moving APART, arrow shrinks
+        # Store new positions for masses
+        new_mass1_pos = mass1.get_center() + LEFT * 1.5
+        new_mass2_pos = mass2.get_center() + RIGHT * 1.5
+        
+        # Create a temporary copy to calculate new arrow positions
+        temp_mass1 = mass1.copy().move_to(new_mass1_pos)
+        temp_mass2 = mass2.copy().move_to(new_mass2_pos)
+        
+        # Create shorter arrows for weaker force at new positions
+        shorter_arrows = create_fbd_force_arrows(
+            temp_mass1, 
+            temp_mass2, 
+            arrow_length=0.5,
+            color=YELLOW,
+            stroke_width=3
+        )
+        
+        # Animate masses moving APART and arrows getting SHORTER simultaneously
         self.play(
-            mass1.animate.shift(LEFT * 1.5),
-            mass2.animate.shift(RIGHT * 1.5),
-            arrow.animate.scale_to_fit_width(arrow.width * 1.8).set_stroke(width=3),
+            mass1.animate.move_to(new_mass1_pos),
+            mass2.animate.move_to(new_mass2_pos),
+            Transform(arrows, shorter_arrows),
             run_time=1.5
         )
         
@@ -360,7 +410,7 @@ class Scene3(Scene):
         
         # Clean up
         self.play(
-            *[FadeOut(mob) for mob in [mass1, mass2, arrow, text3, text4]],
+            *[FadeOut(mob) for mob in [mass1, mass2, arrows, text3, text4]],
             run_time=0.8
         )
     
@@ -376,37 +426,37 @@ class Scene3(Scene):
         ball1.shift(LEFT * 1.5)
         ball2.shift(RIGHT * 1.5)
         
-        # Tiny, almost invisible arrow
-        tiny_arrow = Line(
-            ball1.get_right(),
-            ball2.get_left(),
+        # Create FBD arrows between balls (very short to show weak force)
+        tiny_arrows = create_fbd_force_arrows(
+            ball1,
+            ball2,
+            arrow_length=0.3,
             color=YELLOW,
-            stroke_width=1,
-            stroke_opacity=0.3
+            stroke_width=2
         )
-        tiny_arrow.add_tip(tip_length=0.05)
+        tiny_arrows.set_opacity(0.3)
         
         self.play(
             FadeIn(ball1),
             FadeIn(ball2),
-            Create(tiny_arrow)
+            Create(tiny_arrows)
         )
         
         # Text: "Tiny force"
         tiny_text = StyledText("Tiny force (barely exists!)")
         tiny_text.scale(0.5)
-        tiny_text.next_to(tiny_arrow, UP, buff=0.3)
+        tiny_text.next_to(VGroup(ball1, ball2), UP, buff=0.3)
         tiny_text.set_color(YELLOW)
         
         self.play(FadeIn(tiny_text))
         self.wait(1)
         
-        # Zoom out to show Earth
+        # Group balls and arrows together so they move as one unit
+        ball_group = VGroup(ball1, ball2, tiny_text, tiny_arrows)
+        
+        # Zoom out to show Earth - move the group together
         self.play(
-            ball1.animate.scale(0.3).shift(UP * 1.5),
-            ball2.animate.scale(0.3).shift(UP * 1.5),
-            tiny_arrow.animate.scale(0.3).shift(UP * 1.5),
-            tiny_text.animate.scale(0.5).shift(UP * 2.2),
+            ball_group.animate.scale(0.3).shift(UP * 1.5),
             run_time=1
         )
         
@@ -414,24 +464,39 @@ class Scene3(Scene):
         earth = create_earth(radius=1.5)
         earth.shift(DOWN * 1.5)
         
-        # Huge arrow from Earth to balls
-        huge_arrow = Arrow(
-            earth.get_top(),
-            ball1.get_bottom() + ball2.get_bottom() / 2,
+        self.play(FadeIn(earth, scale=0.8))
+        self.wait(0.3)
+        
+        # Create FBD arrows from Earth to each ball (huge to show strong force)
+        # We'll show arrows going UP from Earth toward the balls
+        earth_to_ball1_arrows = create_fbd_force_arrows(
+            earth,
+            ball1,
+            arrow_length=1.0,
             color=YELLOW,
-            stroke_width=12,
-            buff=0.2
+            stroke_width=12
         )
         
+        earth_to_ball2_arrows = create_fbd_force_arrows(
+            earth,
+            ball2,
+            arrow_length=1.0,
+            color=YELLOW,
+            stroke_width=12
+        )
+        
+        # Only show the arrow from Earth (first arrow in each pair)
         self.play(
-            FadeIn(earth, scale=0.8),
-            Create(huge_arrow)
+            Create(earth_to_ball1_arrows[0]),
+            Create(earth_to_ball2_arrows[0]),
+            Create(earth_to_ball1_arrows[1]),
+            Create(earth_to_ball2_arrows[1])
         )
         
         # Text: "HUGE force"
         huge_text = StyledText("HUGE force!")
         huge_text.scale(0.7)
-        huge_text.next_to(huge_arrow, RIGHT, buff=0.5)
+        huge_text.next_to(earth, RIGHT, buff=1.5)
         huge_text.set_color(ACCENT_COLOR)
         
         self.play(FadeIn(huge_text))
@@ -439,11 +504,11 @@ class Scene3(Scene):
         
         # Show Earth's mass (lines 120-124)
         earth_mass = MathTex(
-            "M_{Earth} = 6 \\times 10^{24} \\text{ kg}",
+            "M_{\\text{Earth}} = 6 \\times 10^{24} \\text{ kg}",
             font_size=48,
             color=ACCENT_COLOR
         )
-        earth_mass.next_to(earth, DOWN, buff=0.5)
+        earth_mass.next_to(earth, DOWN, buff=0.3)
         
         self.play(Write(earth_mass, run_time=1.5))
         self.wait(2)

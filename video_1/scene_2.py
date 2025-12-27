@@ -27,7 +27,7 @@ from utils.physics_objects import (
     create_mass,
     create_earth,
     create_force_arrow,
-    create_attraction_arrows,
+    create_fbd_force_arrows,
     create_simple_person,
     create_phone,
     create_desk,
@@ -89,17 +89,19 @@ class Scene2(Scene):
         earth = create_earth(radius=1.2)
         earth.to_edge(DOWN, buff=0.5)
         
-        # Create ball above Earth
-        ball = create_ball(radius=0.25, color=RED)
+        # Create ball above Earth - make it distinctly red with pattern
+        ball = create_ball(radius=0.25, color=RED, pattern=True)
         ball.shift(UP * 2)
-        
-        # Create downward arrow
-        arrow = Arrow(
-            start=ball.get_bottom() + DOWN * 0.3,
-            end=ball.get_bottom() + DOWN * 1.5,
+
+        arrows = create_fbd_force_arrows(
+            earth, 
+            ball, 
+            arrow_length=1.0,
             color=YELLOW,
             stroke_width=6
         )
+        ball_arrow = arrows[1]
+        earth_arrow = arrows[0]
         
         # Animate
         self.play(
@@ -109,11 +111,12 @@ class Scene2(Scene):
         self.wait(0.5)
         
         # Show arrow and ball falling
-        self.play(Create(arrow))
+        self.play(Create(ball_arrow))
+        self.play(Create(earth_arrow))
         self.play(
-            ball.animate.shift(DOWN * 1.5),
-            arrow.animate.shift(DOWN * 1.5),
-            run_time=1.5,
+            ball.animate.shift(DOWN * 3.0),
+            ball_arrow.animate.shift(DOWN * 3.0),
+            run_time=2.5,
             rate_func=rate_functions.ease_in_quad
         )
         self.wait(0.5)
@@ -122,13 +125,14 @@ class Scene2(Scene):
         self.play(
             FadeOut(earth),
             FadeOut(ball),
-            FadeOut(arrow),
+            FadeOut(ball_arrow),
+            FadeOut(earth_arrow),
             run_time=0.8
         )
     
     def two_masses_demo(self):
         """
-        Part 2: Two masses with mutual attraction
+        Part 2: Two masses with mutual attraction - NOW WITH FBD ARROWS
         Lines 55-57: "Animate two masses (circles) with arrows pointing toward each other. 
         Label them m1 and m2"
         
@@ -143,12 +147,46 @@ class Scene2(Scene):
         self.play(Write(concept_text))
         self.wait(0.5)
         
-        # Create two masses
-        mass1 = create_mass(label="m_1", radius=0.5, color=BLUE)
-        mass2 = create_mass(label="m_2", radius=0.6, color=RED)
+        # Create two DISTINCTLY DIFFERENT masses
+        # Mass 1: Larger, blue, with gradient effect
+        mass1_circle = Circle(
+            radius=0.6,
+            fill_color=BLUE,
+            fill_opacity=0.7,
+            stroke_color=BLUE_E,
+            stroke_width=3
+        )
+        mass1_label = MathTex("m_1", font_size=42, color=WHITE)
+        mass1_label.move_to(mass1_circle.get_center())
+        mass1 = VGroup(mass1_circle, mass1_label)
+        
+        # Mass 2: Smaller, red-orange with different pattern
+        mass2_circle = Circle(
+            radius=0.4,
+            fill_color=RED_C,
+            fill_opacity=0.8,
+            stroke_color=RED_E,
+            stroke_width=3
+        )
+        # Add stripes to mass2 for distinction
+        stripe1 = Line(
+            mass2_circle.get_top() + LEFT * 0.3,
+            mass2_circle.get_bottom() + LEFT * 0.1,
+            color=ORANGE,
+            stroke_width=2
+        )
+        stripe2 = Line(
+            mass2_circle.get_top() + RIGHT * 0.1,
+            mass2_circle.get_bottom() + RIGHT * 0.3,
+            color=ORANGE,
+            stroke_width=2
+        )
+        mass2_label = MathTex("m_2", font_size=36, color=WHITE)
+        mass2_label.move_to(mass2_circle.get_center())
+        mass2 = VGroup(mass2_circle, stripe1, stripe2, mass2_label)
         
         # Position them
-        mass1.shift(LEFT * 2.5 + DOWN * 0.5)
+        mass1.shift(LEFT * 3 + DOWN * 0.5)
         mass2.shift(RIGHT * 2.5 + DOWN * 0.5)
         
         # Animate masses appearing
@@ -159,8 +197,14 @@ class Scene2(Scene):
         )
         self.wait(0.3)
         
-        # Create attraction arrows
-        arrows = create_attraction_arrows(mass1, mass2, color=YELLOW)
+        # Create FBD-style attraction arrows (fixed length, from centers)
+        arrows = create_fbd_force_arrows(
+            mass1, 
+            mass2, 
+            arrow_length=1.2,  # Fixed length
+            color=YELLOW,
+            stroke_width=5
+        )
         
         # Animate arrows
         self.play(
@@ -194,7 +238,7 @@ class Scene2(Scene):
     
     def earth_and_person_demo(self):
         """
-        Part 3: Earth and person pulling on each other
+        Part 3: Earth and person pulling on each other - WITH FBD ARROWS
         Lines 58-62: "Show Earth and a person, with arrows pointing both ways"
         "That means Earth is pulling on you... but you're also pulling on Earth!"
         """
@@ -214,8 +258,14 @@ class Scene2(Scene):
         )
         self.wait(0.5)
         
-        # Create bidirectional arrows
-        arrows = create_attraction_arrows(earth, person, color=YELLOW)
+        # Create FBD-style arrows (fixed length, from centers)
+        arrows = create_fbd_force_arrows(
+            earth, 
+            person, 
+            arrow_length=1.5,  # Fixed length
+            color=YELLOW,
+            stroke_width=5
+        )
         
         # Animate arrows one at a time for emphasis
         self.play(Create(arrows[0]), run_time=0.8)  # Earth pulls on you
@@ -245,7 +295,7 @@ class Scene2(Scene):
     
     def room_objects_demo(self):
         """
-        Part 4: Multiple objects in a room
+        Part 4: Multiple objects in a room - WITH SMALL FBD ARROWS
         Lines 64-70: "Zoom out to show multiple objects in a room - phone, desk, person - 
         all with tiny arrows pointing between them"
         "Your phone is pulling on you. You're pulling on your desk. 
@@ -277,27 +327,24 @@ class Scene2(Scene):
         )
         self.wait(0.5)
         
-        # Create small arrows between ALL objects
+        # Create SMALL FBD arrows between ALL objects
         arrows = VGroup()
         objects_list = [person, phone, desk, ball]
         
         for i, obj1 in enumerate(objects_list):
             for j, obj2 in enumerate(objects_list):
                 if i < j:  # Only create each pair once
-                    # Create small arrows
-                    center1 = obj1.get_center()
-                    center2 = obj2.get_center()
-                    
-                    # Create thin, semi-transparent arrows
-                    arrow = Line(
-                        start=center1,
-                        end=center2,
+                    # Create small FBD-style arrows
+                    small_arrows = create_fbd_force_arrows(
+                        obj1,
+                        obj2,
+                        arrow_length=0.4,  # Much smaller fixed length
                         color=YELLOW,
-                        stroke_width=1.5,
-                        stroke_opacity=0.6
+                        stroke_width=2
                     )
-                    arrow.add_tip(tip_length=0.1)
-                    arrows.add(arrow)
+                    # Make them semi-transparent
+                    small_arrows.set_opacity(0.6)
+                    arrows.add(small_arrows)
         
         # Animate all arrows appearing
         self.play(

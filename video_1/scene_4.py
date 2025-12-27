@@ -28,7 +28,8 @@ from utils.objects import (
 from utils.physics_objects import (
     create_mass,
     create_earth,
-    create_ball
+    create_ball,
+    create_fbd_force_arrows
 )
 
 
@@ -57,15 +58,19 @@ class Scene4(Scene):
         self.restate_question()
         
         # PART 2: Show F = ma (lines 141-153)
+        self.wait(2.0)
         self.introduce_fma()
         
         # PART 3: The mass cancellation (lines 154-169) - THE KEY MOMENT
+        self.wait(2.0)
         self.mass_cancellation()
         
         # PART 4: Feather and hammer on Moon (lines 170-175)
+        self.wait(2.0)
         self.moon_demo()
         
         # PART 5: Interactive question (lines 177-187)
+        self.wait(2.0)
         self.interactive_question()
         
         # Hold final frame
@@ -135,79 +140,69 @@ class Scene4(Scene):
             FadeIn(title),
             Write(fma_eq, run_time=1.2)
         )
-        self.wait(1)
+        self.wait(3)
         
         # Show basketball
         basketball = create_ball(radius=0.5, color=ORANGE)
-        basketball.shift(DOWN * 0.8)
+        basketball.shift(DOWN * 0.5)
         
         ball_label = MathTex("m_{ball}", font_size=42)
-        ball_label.next_to(basketball, DOWN, buff=0.3)
+        ball_label.next_to(basketball, RIGHT, buff=0.2)
         
         self.play(
             FadeIn(basketball, scale=0.5),
             FadeIn(ball_label)
         )
+        self.wait(0.5)
         
-        # Large force arrow pointing down
+        # Simple arrow pointing down (gravity)
         force_arrow = Arrow(
-            basketball.get_top() + UP * 0.3,
-            basketball.get_top() + UP * 0.1,
+            basketball.get_center(),
+            basketball.get_bottom() + DOWN * 0.5,
             color=YELLOW,
-            stroke_width=10,
+            stroke_width=8,
             buff=0
         )
         force_label = MathTex("F_{gravity}", font_size=36, color=YELLOW)
-        force_label.next_to(force_arrow, UP, buff=0.1)
+        force_label.next_to(force_arrow, LEFT, buff=0.3)
         
         self.play(
             Create(force_arrow),
             FadeIn(force_label)
         )
+
+        self.wait(1.0)
         
         # Text: "Earth pulls harder on heavier objects"
         text1 = StyledText("Bigger mass → Bigger force")
         text1.scale(0.6)
-        text1.to_edge(LEFT, buff=0.5)
-        text1.shift(DOWN * 1.5)
+        text1.next_to(basketball, DOWN, buff=1.2)
         text1.set_color(ACCENT_COLOR)
         
         self.play(FadeIn(text1))
-        self.wait(1)
+        self.wait(2.5)
         
         # BUT... harder to accelerate
         text2 = StyledText("BUT... also harder to accelerate!")
         text2.scale(0.6)
-        text2.to_edge(RIGHT, buff=0.5)
-        text2.shift(DOWN * 1.5)
-        text2.set_color(ACCENT_COLOR)
-        
-        # Show resistance visualization (motion lines)
-        resistance_lines = VGroup(*[
-            Line(
-                basketball.get_center() + UP * 0.2 + direction * 0.6,
-                basketball.get_center() + UP * 0.2 + direction * 0.3,
-                color=RED,
-                stroke_width=3
-            ) for direction in [LEFT, RIGHT, UP + LEFT, UP + RIGHT]
-        ])
+        text2.next_to(text1, DOWN, buff=0.3)
+        text2.set_color(RED)
         
         self.play(FadeIn(text2))
-        self.play(Create(resistance_lines))
         self.wait(1.5)
         
         # Clean up for next part
         self.play(
             *[FadeOut(mob) for mob in [
                 title, fma_eq, basketball, ball_label, 
-                force_arrow, force_label, text1, text2, resistance_lines
+                force_arrow, force_label, text1, text2
             ]],
             run_time=0.8
         )
     
     def mass_cancellation(self):
         """
-        Part 3: THE KEY MOMENT - Mass cancellation
+        Part 3: THE KEY MOMENT - Mass cancellation with manual equation composition
         Lines 154-169: Show both equations and cancel the mass
         """
         # Title
@@ -219,30 +214,58 @@ class Scene4(Scene):
         self.play(FadeIn(title))
         self.wait(0.5)
         
-        # Show both equations side by side (lines 154-155)
-        eq1 = MathTex(
-            "F", "=", "G", "\\frac{M_{Earth} \\cdot m}{r^2}",
-            font_size=56
-        )
-        eq1.shift(UP * 1.2 + LEFT * 2.5)
+        # Manually create first equation: F = G * M_Earth * m / r^2
+        f1 = MathTex("F", font_size=56)
+        eq1 = MathTex("=", font_size=56)
+        g1 = MathTex("G", font_size=56)
         
-        eq2 = MathTex(
-            "F", "=", "m", "a",
-            font_size=56
-        )
-        eq2.shift(UP * 1.2 + RIGHT * 2.5)
+        # Fraction for first equation
+        numerator1 = MathTex("M_{Earth} \\cdot m", font_size=42)
+        frac_line1 = Line(LEFT * 0.8, RIGHT * 0.8, color=WHITE, stroke_width=2)
+        denominator1 = MathTex("r^2", font_size=42)
         
+        # Position fraction
+        numerator1.shift(UP * 1.2 + LEFT * 1)
+        frac_line1.next_to(numerator1, DOWN, buff=0.15)
+        denominator1.next_to(frac_line1, DOWN, buff=0.15)
+        
+        fraction1 = VGroup(numerator1, frac_line1, denominator1)
+        
+        # Position left side
+        f1.shift(UP * 1.2 + LEFT * 3.5)
+        eq1.next_to(f1, RIGHT, buff=0.3)
+        g1.next_to(eq1, RIGHT, buff=0.3)
+        fraction1.next_to(g1, RIGHT, buff=0.3)
+        
+        gravity_eq = VGroup(f1, eq1, g1, fraction1)
+        gravity_eq.move_to(UP * 1.2 + LEFT * 2.5)
+        
+        # Manually create second equation: F = m * a
+        f2 = MathTex("F", font_size=56)
+        eq2 = MathTex("=", font_size=56)
+        m2 = MathTex("m", font_size=56)
+        a2 = MathTex("a", font_size=56)
+        
+        f2.shift(UP * 1.2 + RIGHT * 1.5)
+        eq2.next_to(f2, RIGHT, buff=0.3)
+        m2.next_to(eq2, RIGHT, buff=0.3)
+        a2.next_to(m2, RIGHT, buff=0.3)
+        
+        newton_eq = VGroup(f2, eq2, m2, a2)
+        newton_eq.move_to(UP * 1.2 + RIGHT * 2.5)
+        
+        # Labels
         eq1_label = StyledText("Gravity")
         eq1_label.scale(0.5)
-        eq1_label.next_to(eq1, DOWN, buff=0.3)
+        eq1_label.next_to(gravity_eq, DOWN, buff=0.3)
         
         eq2_label = StyledText("Newton's 2nd Law")
         eq2_label.scale(0.5)
-        eq2_label.next_to(eq2, DOWN, buff=0.3)
+        eq2_label.next_to(newton_eq, DOWN, buff=0.3)
         
         self.play(
-            Write(eq1),
-            Write(eq2),
+            FadeIn(gravity_eq),
+            FadeIn(newton_eq),
             run_time=1.5
         )
         self.play(
@@ -251,17 +274,44 @@ class Scene4(Scene):
         )
         self.wait(1)
         
-        # Lines 157-158: Set them equal
-        combined = MathTex(
-            "G", "\\frac{M_{Earth} \\cdot m}{r^2}", "=", "m", "a",
-            font_size=64
-        )
+        # Lines 157-158: Set them equal - manually compose combined equation
+        g_comb = MathTex("G", font_size=64)
+        
+        # Combined fraction numerator with both M_Earth and m
+        num_comb = MathTex("M_{Earth} \\cdot m", font_size=48)
+        frac_line_comb = Line(LEFT * 0.9, RIGHT * 0.9, color=WHITE, stroke_width=2)
+        denom_comb = MathTex("r^2", font_size=48)
+        
+        # Position combined fraction
+        frac_line_comb.move_to(ORIGIN + UP * 0.3)
+        num_comb.next_to(frac_line_comb, UP, buff=0.15)
+        denom_comb.next_to(frac_line_comb, DOWN, buff=0.15)
+        
+        fraction_comb = VGroup(num_comb, frac_line_comb, denom_comb)
+        
+        # Position left side
+        g_comb.move_to(LEFT * 1.5 + UP * 0.3)
+        fraction_comb.next_to(g_comb, RIGHT, buff=0.3)
+        
+        # Right side: = m * a
+        eq_comb = MathTex("=", font_size=64)
+        m_comb = MathTex("m", font_size=64)
+        a_comb = MathTex("a", font_size=64)
+        
+        eq_comb.next_to(fraction_comb, RIGHT, buff=0.4)
+        m_comb.next_to(eq_comb, RIGHT, buff=0.3)
+        a_comb.next_to(m_comb, RIGHT, buff=0.3)
+        
+        combined = VGroup(g_comb, fraction_comb, eq_comb, m_comb, a_comb)
         combined.move_to(ORIGIN + UP * 0.3)
         
         self.play(
             FadeOut(eq1_label),
             FadeOut(eq2_label),
-            TransformMatchingTex(VGroup(eq1, eq2), combined),
+            TransformFromCopy(gravity_eq, VGroup(g_comb, fraction_comb)),
+            TransformFromCopy(newton_eq, VGroup(eq_comb, m_comb, a_comb)),
+            FadeOut(gravity_eq),
+            FadeOut(newton_eq),
             run_time=1.5
         )
         self.wait(1)
@@ -274,32 +324,31 @@ class Scene4(Scene):
         
         self.play(FadeIn(highlight_text))
         
-        # Add visual indicators for the m's (colored overlays)
-        # These approximate the positions of m in the equation
-        m1_box = Rectangle(
-            width=0.3, height=0.4,
-            stroke_color=RED,
+        # Create boxes around BOTH m's
+        # The m in the numerator is part of num_comb
+        # We need to extract just the "m" part - it's the last character
+        m_in_numerator_box = SurroundingRectangle(
+            num_comb[0][-1:],  # Last character of M_Earth · m
+            color=RED,
             stroke_width=3,
-            fill_opacity=0
+            buff=0.08
         )
-        m1_box.move_to(combined.get_center() + LEFT * 1.2 + UP * 0.3)
         
-        m2_box = Rectangle(
-            width=0.3, height=0.4,
-            stroke_color=RED,
+        m_on_right_box = SurroundingRectangle(
+            m_comb,
+            color=RED,
             stroke_width=3,
-            fill_opacity=0
+            buff=0.08
         )
-        m2_box.move_to(combined.get_center() + RIGHT * 1.8)
         
         self.play(
-            Create(m1_box),
-            Create(m2_box),
+            Create(m_in_numerator_box),
+            Create(m_on_right_box),
             run_time=0.8
         )
         self.wait(1)
         
-        # Lines 159-160: Show them canceling with crossing animation
+        # Lines 159-160: Show them canceling
         cancel_text = StyledText("They CANCEL OUT!")
         cancel_text.scale(0.7)
         cancel_text.next_to(combined, DOWN, buff=0.8)
@@ -310,14 +359,18 @@ class Scene4(Scene):
             FadeIn(cancel_text)
         )
         
-        # Create crossed-out version with X marks
+        # Create X marks using the boxes
         cross1 = VGroup(
-            Line(m1_box.get_corner(DL), m1_box.get_corner(UR), color=RED, stroke_width=4),
-            Line(m1_box.get_corner(UL), m1_box.get_corner(DR), color=RED, stroke_width=4)
+            Line(m_in_numerator_box.get_corner(DL), m_in_numerator_box.get_corner(UR), 
+                 color=RED, stroke_width=4),
+            Line(m_in_numerator_box.get_corner(UL), m_in_numerator_box.get_corner(DR), 
+                 color=RED, stroke_width=4)
         )
         cross2 = VGroup(
-            Line(m2_box.get_corner(DL), m2_box.get_corner(UR), color=RED, stroke_width=4),
-            Line(m2_box.get_corner(UL), m2_box.get_corner(DR), color=RED, stroke_width=4)
+            Line(m_on_right_box.get_corner(DL), m_on_right_box.get_corner(UR), 
+                 color=RED, stroke_width=4),
+            Line(m_on_right_box.get_corner(UL), m_on_right_box.get_corner(DR), 
+                 color=RED, stroke_width=4)
         )
         
         self.play(
@@ -327,17 +380,36 @@ class Scene4(Scene):
         )
         self.wait(1)
         
-        # Lines 164-165: Show final result
-        final = MathTex(
-            "a", "=", "G", "\\frac{M_{Earth}}{r^2}",
-            font_size=72
-        )
-        final.move_to(ORIGIN + DOWN * 0.5)
+        # Lines 164-165: Show final result - manually compose
+        a_final = MathTex("a", font_size=72)
+        eq_final = MathTex("=", font_size=72)
+        g_final = MathTex("G", font_size=72)
+        
+        # Final fraction (without m)
+        num_final = MathTex("M_{Earth}", font_size=54)
+        frac_line_final = Line(LEFT * 0.7, RIGHT * 0.7, color=WHITE, stroke_width=2)
+        denom_final = MathTex("r^2", font_size=54)
+        
+        # Position final fraction
+        frac_line_final.move_to(DOWN * 0.5)
+        num_final.next_to(frac_line_final, UP, buff=0.15)
+        denom_final.next_to(frac_line_final, DOWN, buff=0.15)
+        
+        fraction_final = VGroup(num_final, frac_line_final, denom_final)
+        
+        # Position left side
+        a_final.move_to(LEFT * 2 + DOWN * 0.5)
+        eq_final.next_to(a_final, RIGHT, buff=0.3)
+        g_final.next_to(eq_final, RIGHT, buff=0.3)
+        fraction_final.next_to(g_final, RIGHT, buff=0.3)
+        
+        final = VGroup(a_final, eq_final, g_final, fraction_final)
+        final.move_to(DOWN * 0.5)
         
         self.play(
             FadeOut(combined),
-            FadeOut(m1_box),
-            FadeOut(m2_box),
+            FadeOut(m_in_numerator_box),
+            FadeOut(m_on_right_box),
             FadeOut(cross1),
             FadeOut(cross2),
             FadeOut(cancel_text),
@@ -359,7 +431,7 @@ class Scene4(Scene):
             color=YELLOW,
             stroke_width=3
         )
-        circle.move_to(final[0].get_right() + RIGHT * 0.4)
+        circle.move_to(a_final.get_left() + LEFT * 0.5)
         
         question_mark = Text("m?", font_size=36, color=YELLOW)
         question_mark.move_to(circle)
@@ -518,22 +590,41 @@ class Scene4(Scene):
         
         self.play(FadeIn(answer_title))
         
-        # Show equation with 2M
-        equation = MathTex(
-            "a", "=", "G", "\\frac{", "2M_{Earth}", "}{r^2}",
-            font_size=56
-        )
-        equation.next_to(answer_title, DOWN, buff=0.5)
+        # Manually create equation with 2M_Earth
+        a_ans = MathTex("a", font_size=56)
+        eq_ans = MathTex("=", font_size=56)
+        g_ans = MathTex("G", font_size=56)
+        
+        # Fraction with 2M_Earth
+        num_ans = MathTex("2M_{Earth}", font_size=42)
+        frac_line_ans = Line(LEFT * 0.7, RIGHT * 0.7, color=WHITE, stroke_width=2)
+        denom_ans = MathTex("r^2", font_size=42)
+        
+        # Position fraction
+        frac_line_ans.move_to(DOWN * 1.2)
+        num_ans.next_to(frac_line_ans, UP, buff=0.15)
+        denom_ans.next_to(frac_line_ans, DOWN, buff=0.15)
+        
+        fraction_ans = VGroup(num_ans, frac_line_ans, denom_ans)
+        
+        # Position left side
+        a_ans.move_to(LEFT * 1.8 + DOWN * 1.2)
+        eq_ans.next_to(a_ans, RIGHT, buff=0.3)
+        g_ans.next_to(eq_ans, RIGHT, buff=0.3)
+        fraction_ans.next_to(g_ans, RIGHT, buff=0.3)
+        
+        equation = VGroup(a_ans, eq_ans, g_ans, fraction_ans)
+        equation.move_to(DOWN * 1.2)
         
         self.play(Write(equation))
         
         # Highlight 2M
-        self.play(equation[4].animate.set_color(ACCENT_COLOR), run_time=0.5)
+        self.play(num_ans.animate.set_color(ACCENT_COLOR), run_time=0.5)
         
         # Arrow showing increase
         arrow_up = Arrow(
-            equation[4].get_bottom(),
-            equation[4].get_bottom() + DOWN * 0.5,
+            num_ans.get_bottom(),
+            num_ans.get_bottom() + DOWN * 0.5,
             color=GREEN,
             stroke_width=4
         )
