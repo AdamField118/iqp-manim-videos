@@ -263,7 +263,7 @@ class Scene2(Scene):
         )
         
         # Animate arrows one at a time for emphasis
-        self.play(Create(arrows[0]), run_time=0.8)  # Earth pulls on you
+        self.play(Create(arrows[1]), run_time=0.8)  # Earth pulls on you
         
         # Add text: "Earth pulls on you"
         text1 = StyledText("Earth pulls on you")
@@ -272,7 +272,7 @@ class Scene2(Scene):
         self.play(FadeIn(text1))
         self.wait(0.8)
         
-        self.play(Create(arrows[1]), run_time=0.8)  # You pull on Earth!
+        self.play(Create(arrows[0]), run_time=0.8)  # You pull on Earth!
         
         # Add text: "You pull on Earth!"
         text2 = StyledText("You pull on Earth!")
