@@ -29,7 +29,8 @@ from utils.physics_objects import (
     create_mass,
     create_earth,
     create_force_arrow,
-    create_fbd_force_arrows
+    create_fbd_force_arrows,
+    create_ball
 )
 
 
@@ -41,6 +42,7 @@ class Scene3(Scene):
     F = G * m₁ * m₂ / r²
     
     Explains each variable and demonstrates the relationships.
+    Includes Question 1 about inverse square law.
     
     Duration: 1:30-2:30 (60 seconds)
     From PDF lines 74-125
@@ -63,7 +65,10 @@ class Scene3(Scene):
         # PART 3: Demonstrate the relationships (lines 100-105)
         self.demonstrate_relationships()
         
-        # PART 4: Why don't we feel everyday gravity? (lines 109-125)
+        # PART 4: **NEW** Interactive Question 1 - Inverse Square Law (lines 106-114)
+        self.question_1_inverse_square()
+        
+        # PART 5: Why don't we feel everyday gravity? (lines 115-125)
         self.everyday_gravity_explanation()
         
         # Hold final frame
@@ -414,22 +419,135 @@ class Scene3(Scene):
             run_time=0.8
         )
     
+    def question_1_inverse_square(self):
+        """
+        **NEW PART 4:** Interactive Question 1 - Inverse Square Law
+        Lines 106-114: Test understanding about doubling distance
+        
+        "Let's test your understanding. If you doubled the distance between two objects, 
+        what would happen to the gravitational force between them?"
+        """
+        # Fade out equation first
+        self.play(FadeOut(self.equation), run_time=0.5)
+        
+        # Question title
+        question_title = StyledText("Test Your Understanding:")
+        question_title.scale(0.8)
+        question_title.to_edge(UP, buff=0.5)
+        question_title.set_color(ACCENT_COLOR)
+        
+        self.play(FadeIn(question_title))
+        
+        # Question text
+        question_text = StyledText(
+            "If you doubled the distance between two objects,\nwhat happens to the gravitational force?"
+        )
+        question_text.scale(0.65)
+        question_text.next_to(question_title, DOWN, buff=0.5)
+        
+        self.play(Write(question_text, run_time=2))
+        
+        # Pause for thinking (3-4 seconds)
+        thinking = StyledText("Think about it...")
+        thinking.scale(0.5)
+        thinking.to_edge(DOWN, buff=1)
+        thinking.set_color(YELLOW)
+        
+        self.play(FadeIn(thinking))
+        self.wait(3.5)
+        self.play(FadeOut(thinking))
+        
+        # Show answer (lines 109-114)
+        answer_title = StyledText("Answer:")
+        answer_title.scale(0.7)
+        answer_title.shift(UP * 0.3)
+        answer_title.set_color(ACCENT_COLOR)
+        
+        self.play(FadeIn(answer_title))
+        
+        # Show equation with r being replaced by 2r
+        # Create equation: F = G m₁m₂/(2r)²
+        f_ans = MathTex("F", font_size=56)
+        eq_ans = MathTex("=", font_size=56)
+        g_ans = MathTex("G", font_size=56)
+        
+        # Fraction with (2r)²
+        num_ans = MathTex("m_1 m_2", font_size=42)
+        frac_line_ans = Line(LEFT * 0.7, RIGHT * 0.7, color=WHITE, stroke_width=2)
+        denom_ans = MathTex("(2r)^2", font_size=42)
+        
+        # Position fraction
+        frac_line_ans.move_to(DOWN * 0.5)
+        num_ans.next_to(frac_line_ans, UP, buff=0.15)
+        denom_ans.next_to(frac_line_ans, DOWN, buff=0.15)
+        
+        fraction_ans = VGroup(num_ans, frac_line_ans, denom_ans)
+        
+        # Position left side
+        f_ans.move_to(LEFT * 1.8 + DOWN * 0.5)
+        eq_ans.next_to(f_ans, RIGHT, buff=0.3)
+        g_ans.next_to(eq_ans, RIGHT, buff=0.3)
+        fraction_ans.next_to(g_ans, RIGHT, buff=0.3)
+        
+        equation_ans = VGroup(f_ans, eq_ans, g_ans, fraction_ans)
+        equation_ans.move_to(DOWN * 0.5)
+        
+        self.play(Write(equation_ans))
+        
+        # Highlight (2r)²
+        self.play(denom_ans.animate.set_color(GREEN), run_time=0.5)
+        self.wait(0.5)
+        
+        # Show that this equals 4r²
+        arrow_right = Arrow(
+            denom_ans.get_right(),
+            denom_ans.get_right() + RIGHT * 1.5,
+            color=GREEN,
+            stroke_width=3
+        )
+        four_r_squared = MathTex("4r^2", font_size=42, color=GREEN)
+        four_r_squared.next_to(arrow_right, RIGHT, buff=0.2)
+        
+        self.play(
+            Create(arrow_right),
+            FadeIn(four_r_squared)
+        )
+        self.wait(1)
+        
+        # Final answer text
+        final_answer = StyledText("Force becomes ONE-FOURTH as strong!")
+        final_answer.scale(0.7)
+        final_answer.to_edge(DOWN, buff=0.8)
+        final_answer.set_color(ACCENT_COLOR)
+        
+        self.play(FadeIn(final_answer))
+        self.wait(2)
+        
+        # Clean up
+        self.play(
+            *[FadeOut(mob) for mob in [
+                question_title, question_text, answer_title, 
+                equation_ans, arrow_right, four_r_squared, final_answer
+            ]],
+            run_time=0.8
+        )
+    
     def everyday_gravity_explanation(self):
         """
-        Part 4: Why don't we feel everyday gravity?
-        Lines 109-125: Explain why we don't feel gravity between everyday objects
+        Part 5: Why don't we feel everyday gravity? (UPDATED with basketball/tennis ball)
+        Lines 115-125: Explain why we don't feel gravity between everyday objects
         """
-        # Bring back two small objects (balls)
-        ball1 = create_mass(label="", radius=0.2, color=RED, show_label=False)
-        ball2 = create_mass(label="", radius=0.2, color=ORANGE, show_label=False)
+        # Bring back basketball and tennis ball (instead of generic balls)
+        basketball = create_ball(radius=0.35, color=ORANGE, pattern=True)
+        basketball.shift(LEFT * 1.8)
         
-        ball1.shift(LEFT * 1.5)
-        ball2.shift(RIGHT * 1.5)
+        tennis_ball = create_ball(radius=0.2, color=GREEN, pattern=True)
+        tennis_ball.shift(RIGHT * 1.8)
         
         # Create FBD arrows between balls (very short to show weak force)
         tiny_arrows = create_fbd_force_arrows(
-            ball1,
-            ball2,
+            basketball,
+            tennis_ball,
             arrow_length=0.3,
             color=YELLOW,
             stroke_width=2
@@ -437,22 +555,22 @@ class Scene3(Scene):
         tiny_arrows.set_opacity(0.3)
         
         self.play(
-            FadeIn(ball1),
-            FadeIn(ball2),
+            FadeIn(basketball),
+            FadeIn(tennis_ball),
             Create(tiny_arrows)
         )
         
         # Text: "Tiny force"
         tiny_text = StyledText("Tiny force (barely exists!)")
         tiny_text.scale(0.5)
-        tiny_text.next_to(VGroup(ball1, ball2), UP, buff=0.3)
+        tiny_text.next_to(VGroup(basketball, tennis_ball), UP, buff=0.3)
         tiny_text.set_color(YELLOW)
         
         self.play(FadeIn(tiny_text))
         self.wait(1)
         
         # Group balls and arrows together so they move as one unit
-        ball_group = VGroup(ball1, ball2, tiny_text, tiny_arrows)
+        ball_group = VGroup(basketball, tennis_ball, tiny_text, tiny_arrows)
         
         # Zoom out to show Earth - move the group together
         self.play(
@@ -468,10 +586,9 @@ class Scene3(Scene):
         self.wait(0.3)
         
         # Create FBD arrows from Earth to each ball (huge to show strong force)
-        # We'll show arrows going UP from Earth toward the balls
         earth_to_ball1_arrows = create_fbd_force_arrows(
             earth,
-            ball1,
+            basketball,
             arrow_length=1.0,
             color=YELLOW,
             stroke_width=12
@@ -479,13 +596,13 @@ class Scene3(Scene):
         
         earth_to_ball2_arrows = create_fbd_force_arrows(
             earth,
-            ball2,
+            tennis_ball,
             arrow_length=1.0,
             color=YELLOW,
             stroke_width=12
         )
         
-        # Only show the arrow from Earth (first arrow in each pair)
+        # Show all arrows from Earth
         self.play(
             Create(earth_to_ball1_arrows[0]),
             Create(earth_to_ball2_arrows[0]),

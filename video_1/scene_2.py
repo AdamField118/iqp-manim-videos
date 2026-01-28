@@ -40,7 +40,7 @@ class Scene2(Scene):
     Scene 2: Setting the Stage
     
     Introduces the universal nature of gravity:
-    - Ball falling to Earth
+    - Tennis ball falling to Earth
     - Mutual attraction between two masses
     - Earth and person pulling on each other
     - All objects in a room attracting each other
@@ -57,21 +57,16 @@ class Scene2(Scene):
         logo.to_corner(DR, buff=0.3)
         self.add(logo)
         
-        # PART 1: Ball falling toward Earth (lines 46-47)
-        # "Animate a simple ball falling toward Earth"
+        # PART 1: Tennis ball falling toward Earth (lines 46-47)
         self.ball_falling_demo()
         
         # PART 2: Two masses with mutual attraction (lines 55-57)
-        # "Animate two masses (circles) with arrows pointing toward each other. Label them m1 and m2"
         self.two_masses_demo()
         
         # PART 3: Earth and person (lines 58-62)
-        # "Show Earth and a person, with arrows pointing both ways"
-        # "That means Earth is pulling on you... but you're also pulling on Earth!"
         self.earth_and_person_demo()
         
         # PART 4: Multiple objects in room (lines 64-70)
-        # "Zoom out to show multiple objects in a room - phone, desk, person - all with tiny arrows"
         self.room_objects_demo()
         
         # Hold final frame before transition
@@ -82,20 +77,20 @@ class Scene2(Scene):
     
     def ball_falling_demo(self):
         """
-        Part 1: Simple ball falling toward Earth
+        Part 1: Tennis ball falling toward Earth
         Lines 46-47: "Animate a simple ball falling toward Earth"
         """
         # Create Earth at bottom
         earth = create_earth(radius=1.2)
         earth.to_edge(DOWN, buff=0.5)
         
-        # Create ball above Earth - make it distinctly red with pattern
-        ball = create_ball(radius=0.25, color=RED, pattern=True)
-        ball.shift(UP * 2)
+        # Create tennis ball above Earth - small, green with pattern
+        tennis_ball = create_ball(radius=0.2, color=GREEN, pattern=True)
+        tennis_ball.shift(UP * 2)
 
         arrows = create_fbd_force_arrows(
             earth, 
-            ball, 
+            tennis_ball, 
             arrow_length=1.0,
             color=YELLOW,
             stroke_width=6
@@ -106,15 +101,15 @@ class Scene2(Scene):
         # Animate
         self.play(
             FadeIn(earth),
-            fade_in_from_bottom(ball, run_time=0.8)
+            fade_in_from_bottom(tennis_ball, run_time=0.8)
         )
         self.wait(0.5)
         
-        # Show arrow and ball falling
+        # Show arrow and tennis ball falling
         self.play(Create(ball_arrow))
         self.play(Create(earth_arrow))
         self.play(
-            ball.animate.shift(DOWN * 3.0),
+            tennis_ball.animate.shift(DOWN * 3.0),
             ball_arrow.animate.shift(DOWN * 3.0),
             run_time=2.5,
             rate_func=rate_functions.ease_in_quad
@@ -124,7 +119,7 @@ class Scene2(Scene):
         # Fade out for next part
         self.play(
             FadeOut(earth),
-            FadeOut(ball),
+            FadeOut(tennis_ball),
             FadeOut(ball_arrow),
             FadeOut(earth_arrow),
             run_time=0.8

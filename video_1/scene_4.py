@@ -69,7 +69,7 @@ class Scene4(Scene):
         self.wait(2.0)
         self.moon_demo()
         
-        # PART 5: Interactive question (lines 177-187)
+        # PART 5: Interactive question (lines 177-187) - FIXED OVERLAP
         self.wait(2.0)
         self.interactive_question()
         
@@ -553,7 +553,7 @@ class Scene4(Scene):
     
     def interactive_question(self):
         """
-        Part 5: Interactive question
+        Part 5: Interactive question - FIXED OVERLAP ISSUE
         Lines 177-187: Test understanding with a question about 2× Earth's mass
         """
         # Question
@@ -621,20 +621,20 @@ class Scene4(Scene):
         # Highlight 2M
         self.play(num_ans.animate.set_color(ACCENT_COLOR), run_time=0.5)
         
-        # Arrow showing increase
-        arrow_up = Arrow(
-            num_ans.get_bottom(),
-            num_ans.get_bottom() + DOWN * 0.5,
+        # FIXED: Arrow and label to the RIGHT side instead of below
+        arrow_right = Arrow(
+            num_ans.get_right(),
+            num_ans.get_right() + RIGHT * 1.2,
             color=GREEN,
             stroke_width=4
         )
         arrow_label = StyledText("Bigger!")
         arrow_label.scale(0.5)
-        arrow_label.next_to(arrow_up, DOWN, buff=0.1)
+        arrow_label.next_to(arrow_right, RIGHT, buff=0.1)  # Position to the RIGHT
         arrow_label.set_color(GREEN)
         
         self.play(
-            Create(arrow_up),
+            Create(arrow_right),
             FadeIn(arrow_label)
         )
         

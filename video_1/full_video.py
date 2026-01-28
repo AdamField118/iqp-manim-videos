@@ -6,7 +6,7 @@ This file renders all 5 scenes in sequence to create the complete video.
 Total Duration: ~5 minutes (300 seconds)
 - Scene 1: Title Card (0:00-0:45) - 6 seconds
 - Scene 2: Setting the Stage (0:45-1:30) - 45 seconds  
-- Scene 3: Newton's Discovery (1:30-2:30) - 60 seconds
+- Scene 3: Newton's Discovery (1:30-2:30) - 60 seconds (now includes Question 1)
 - Scene 4: Solving the Mystery (2:30-3:45) - 75 seconds
 - Scene 5: Wrapping Up (3:45-4:30) - 45 seconds
 
@@ -81,9 +81,9 @@ class FullVideo(Scene):
         self.logo = logo
     
     def scene_2_setting_the_stage(self):
-        """Scene 2: Setting the Stage - Gravity is universal (UPDATED WITH FBD ARROWS)"""
+        """Scene 2: Setting the Stage - Gravity is universal (UPDATED WITH TENNIS BALL + FBD ARROWS)"""
         
-        # Two masses with attraction - NOW WITH FBD ARROWS
+        # Two masses with attraction - FBD ARROWS
         # Create DISTINCTLY DIFFERENT masses
         mass1_circle = Circle(
             radius=0.6,
@@ -187,21 +187,6 @@ class FullVideo(Scene):
         # Get exact submobjects for the m's
         m1_submobject = combined[2]  # First m (in numerator)
         m2_submobject = combined[6]  # Second m (right side of =)
-        
-        # Create boxes that EXACTLY surround the m's
-        m1_box = SurroundingRectangle(
-            m1_submobject,
-            color=RED,
-            stroke_width=3,
-            buff=0.1
-        )
-        
-        m2_box = SurroundingRectangle(
-            m2_submobject,
-            color=RED,
-            stroke_width=3,
-            buff=0.1
-        )
         
         # Create boxes that EXACTLY surround the m's
         m1_box = SurroundingRectangle(
