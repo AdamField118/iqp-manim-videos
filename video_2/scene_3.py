@@ -61,7 +61,7 @@ class Scene3(Scene):
         # Highlight M_oplus
         earth_label = StyledText("Earth's mass")
         earth_label.scale(0.45).set_color(BLUE)
-        earth_label.next_to(formula, DOWN, buff=0.7).shift(LEFT * 1.8)
+        earth_label.next_to(formula, UP, buff=0.25).shift(RIGHT * 0.45)
 
         self.play(formula[1].animate.set_color(BLUE), FadeIn(earth_label))
         self.wait(0.8)
@@ -69,7 +69,7 @@ class Scene3(Scene):
         # Highlight m
         m_label = StyledText("falling object's mass")
         m_label.scale(0.45).set_color(GREEN)
-        m_label.next_to(formula, DOWN, buff=0.7)
+        m_label.next_to(formula, UP, buff=0.1).shift(RIGHT * 1.85)
 
         self.play(formula[2].animate.set_color(GREEN), FadeIn(m_label))
         self.wait(0.8)
@@ -77,7 +77,7 @@ class Scene3(Scene):
         # Highlight r^2
         r_label = StyledText("distance from Earth's center")
         r_label.scale(0.45).set_color(YELLOW)
-        r_label.next_to(formula, UP, buff=0.5)
+        r_label.next_to(formula, DOWN, buff=0.25).shift(RIGHT * 1.0)
 
         self.play(formula[4].animate.set_color(YELLOW), FadeIn(r_label))
         self.wait(1.5)

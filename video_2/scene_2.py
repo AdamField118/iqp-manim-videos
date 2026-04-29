@@ -251,15 +251,15 @@ class Scene2(Scene):
 
         f_label = StyledText("net force")
         f_label.scale(0.5).set_color(YELLOW)
-        f_label.next_to(fma, UP, buff=0.9).shift(LEFT * 2.0)
+        f_label.next_to(fma, UP, buff=0.3).shift(LEFT * 1.3)
 
         m_label = StyledText("mass of object")
         m_label.scale(0.5).set_color(BLUE)
-        m_label.next_to(fma, DOWN, buff=0.9)
+        m_label.next_to(fma, DOWN, buff=0.25).shift(RIGHT * 0.8)
 
         a_label = StyledText("acceleration produced")
         a_label.scale(0.5).set_color(RED)
-        a_label.next_to(fma, UP, buff=0.9).shift(RIGHT * 2.2)
+        a_label.next_to(fma, UP, buff=0.05).shift(RIGHT * 1.55)
 
         # Reveal one at a time with color highlights
         self.play(fma[0].animate.set_color(YELLOW), FadeIn(f_label))
