@@ -2,9 +2,9 @@
 Scene 3: Newton's Big Discovery (1:30-2:45)
 
 This scene introduces Newton's Law of Universal Gravitation and explains
-each component of the equation. Includes two interactive questions.
+each component of the equation. Includes one interactive question.
 
-From PDF transcript lines 74-166.
+From PDF transcript lines 74-131.
 """
 
 import sys
@@ -44,11 +44,9 @@ class Scene3(Scene):
     Includes:
     - Explanation of each variable
     - Question 1: Inverse square law (doubling distance)
-    - Question 2: Earth-Moon vs Earth-Sun force comparison
-    - Why don't we feel everyday gravity?
 
     Duration: 1:30-2:45 (75 seconds)
-    From PDF lines 74-166
+    From PDF lines 74-131
     """
 
     def construct(self):
@@ -77,12 +75,6 @@ class Scene3(Scene):
 
         # PART 4: Question 1 - Inverse Square Law (lines 106-114)
         Scene3.question_1_inverse_square(self)
-
-        # PART 5: Question 2 - Earth-Moon vs Earth-Sun (lines 133-146)
-        Scene3.question_2_earth_moon_sun(self)
-
-        # PART 6: Why don't we feel everyday gravity? (lines 147-166)
-        Scene3.everyday_gravity_explanation(self)
 
         # Hold final frame
         self.wait(2)
@@ -136,7 +128,6 @@ class Scene3(Scene):
         self.wait(5)
 
         # Lines 88-91: Highlight the negative sign and r̂
-        # Submobject 0 is the whole expression; highlight by color
         neg_label = StyledText("Always attractive (pulls together)")
         neg_label.scale(0.55)
         neg_label.next_to(vec_formula, DOWN, buff=0.5)
@@ -151,7 +142,6 @@ class Scene3(Scene):
         self.wait(14.0)
 
         # Lines 92-96: "For this video we focus on the magnitude"
-        # Show simplified magnitude version appearing below
         scope_text = StyledText("For this video: magnitude only")
         scope_text.scale(0.55)
         scope_text.set_color(ACCENT_COLOR)
@@ -514,240 +504,10 @@ class Scene3(Scene):
             run_time=0.8
         )
 
-    def question_2_earth_moon_sun(self):
-        """
-        Part 5: Question 2 - Earth-Moon vs Earth-Sun force comparison (NEW)
-        Lines 133-146: "Is the gravitational force between the Earth and Sun
-        bigger or smaller than the force between the Earth and Moon?"
-
-        Counterintuitive result: Earth-Moon force is ~2× stronger than Earth-Sun
-        because distance wins over mass in the r² denominator.
-        """
-        question_title = StyledText("Here's Another One:")
-        question_title.scale(0.8)
-        question_title.to_edge(UP, buff=0.5)
-        question_title.set_color(ACCENT_COLOR)
-
-        self.play(FadeIn(question_title))
-
-        question_text = StyledText(
-            "Is the Earth-Sun gravitational force\nbigger or smaller than the Earth-Moon force?"
-        )
-        question_text.scale(0.65)
-        question_text.next_to(question_title, DOWN, buff=0.4)
-
-        self.play(Write(question_text, run_time=2))
-
-        thinking = StyledText("Think about it...")
-        thinking.scale(0.5)
-        thinking.to_edge(DOWN, buff=1)
-        thinking.set_color(YELLOW)
-
-        self.play(FadeIn(thinking))
-        self.wait(3.5)
-        self.play(FadeOut(thinking), FadeOut(question_text))
-
-        # Show Earth, Moon, and Sun with distances labeled
-        # Earth at center-left, Moon nearby, Sun far right
-        earth = create_earth(radius=0.5)
-        earth.shift(LEFT * 2)
-
-        moon_circle = Circle(radius=0.25, fill_color=GREY, fill_opacity=0.9,
-                             stroke_color=WHITE, stroke_width=2)
-        moon_label = StyledText("Moon")
-        moon_label.scale(0.4)
-        moon_label.next_to(moon_circle, DOWN, buff=0.15)
-        moon = VGroup(moon_circle, moon_label)
-        moon.shift(LEFT * 0.2)  # Close to Earth
-
-        sun_circle = Circle(radius=0.6, fill_color=YELLOW, fill_opacity=0.9,
-                            stroke_color=ORANGE, stroke_width=3)
-        sun_label = StyledText("Sun")
-        sun_label.scale(0.4)
-        sun_label.next_to(sun_circle, DOWN, buff=0.15)
-        sun = VGroup(sun_circle, sun_label)
-        sun.shift(RIGHT * 3.5)
-
-        self.play(
-            FadeIn(earth, scale=0.8),
-            FadeIn(moon, scale=0.8),
-            FadeIn(sun, scale=0.8),
-            run_time=1
-        )
-        self.wait(0.5)
-
-        # FBD arrows: Earth-Moon (strong, thick) and Earth-Sun (weaker, thinner)
-        earth_moon_arrows = create_fbd_force_arrows(
-            earth, moon,
-            arrow_length=0.6,
-            color=YELLOW,
-            stroke_width=8
-        )
-
-        earth_sun_arrows = create_fbd_force_arrows(
-            earth, sun,
-            arrow_length=0.6,
-            color=ORANGE,
-            stroke_width=4
-        )
-
-        moon_force_label = StyledText("Earth-Moon force")
-        moon_force_label.scale(0.45)
-        moon_force_label.set_color(YELLOW)
-        moon_force_label.next_to(earth_moon_arrows, UP, buff=0.15)
-
-        sun_force_label = StyledText("Earth-Sun force")
-        sun_force_label.scale(0.45)
-        sun_force_label.set_color(ORANGE)
-        sun_force_label.next_to(earth_sun_arrows, UP, buff=0.15)
-
-        self.play(
-            Create(earth_moon_arrows),
-            FadeIn(moon_force_label),
-            run_time=0.8
-        )
-        self.wait(0.5)
-        self.play(
-            Create(earth_sun_arrows),
-            FadeIn(sun_force_label),
-            run_time=0.8
-        )
-        self.wait(1)
-
-        # Reveal the answer
-        answer = StyledText("Earth-Moon force is ~2× STRONGER!")
-        answer.scale(0.65)
-        answer.to_edge(DOWN, buff=1.2)
-        answer.set_color(ACCENT_COLOR)
-
-        self.play(FadeIn(answer))
-        self.wait(0.8)
-
-        # Explain why: r² wins over mass
-        explanation = StyledText(
-            "The Sun is massive, but the r² in the denominator\nmakes distance the dominant factor."
-        )
-        explanation.scale(0.5)
-        explanation.next_to(answer, UP, buff=0.3)
-        explanation.set_color(WHITE)
-
-        self.play(Write(explanation, run_time=1.5))
-        self.wait(2)
-
-        self.play(
-            *[FadeOut(mob) for mob in [
-                question_title, earth, moon, sun,
-                earth_moon_arrows, earth_sun_arrows,
-                moon_force_label, sun_force_label,
-                answer, explanation
-            ]],
-            run_time=0.8
-        )
-
-    def everyday_gravity_explanation(self):
-        """
-        Part 6: Why don't we feel everyday gravity? (basketball/tennis ball)
-        Lines 147-166: Explain why we don't feel gravity between everyday objects
-        """
-        # Basketball and tennis ball with tiny force arrow
-        basketball = create_ball(radius=0.35, color=ORANGE, pattern=True)
-        basketball.shift(LEFT * 1.8)
-
-        tennis_ball = create_ball(radius=0.2, color=GREEN, pattern=True)
-        tennis_ball.shift(RIGHT * 1.8)
-
-        tiny_arrows = create_fbd_force_arrows(
-            basketball,
-            tennis_ball,
-            arrow_length=0.3,
-            color=YELLOW,
-            stroke_width=2
-        )
-        tiny_arrows.set_opacity(0.3)
-
-        self.play(
-            FadeIn(basketball),
-            FadeIn(tennis_ball),
-            Create(tiny_arrows)
-        )
-
-        tiny_text = StyledText("Tiny force (barely exists!)")
-        tiny_text.scale(0.5)
-        tiny_text.next_to(VGroup(basketball, tennis_ball), UP, buff=0.3)
-        tiny_text.set_color(YELLOW)
-
-        self.play(FadeIn(tiny_text))
-        self.wait(1)
-
-        # Group balls and arrows together so they move as one unit
-        ball_group = VGroup(basketball, tennis_ball, tiny_text, tiny_arrows)
-
-        self.play(
-            ball_group.animate.scale(0.3).shift(UP * 1.5),
-            run_time=1
-        )
-
-        # Show Earth for comparison
-        earth = create_earth(radius=1.5)
-        earth.shift(DOWN * 1.5)
-
-        self.play(FadeIn(earth, scale=0.8))
-        self.wait(0.3)
-
-        # FBD arrows from Earth to each ball (thick to show strong force)
-        earth_to_ball1_arrows = create_fbd_force_arrows(
-            earth, basketball,
-            arrow_length=1.0,
-            color=YELLOW,
-            stroke_width=12
-        )
-        earth_to_ball2_arrows = create_fbd_force_arrows(
-            earth, tennis_ball,
-            arrow_length=1.0,
-            color=YELLOW,
-            stroke_width=12
-        )
-
-        self.play(
-            Create(earth_to_ball1_arrows[0]),
-            Create(earth_to_ball2_arrows[0]),
-            Create(earth_to_ball1_arrows[1]),
-            Create(earth_to_ball2_arrows[1])
-        )
-
-        huge_text = StyledText("HUGE force!")
-        huge_text.scale(0.7)
-        huge_text.next_to(earth, RIGHT, buff=1.5)
-        huge_text.set_color(ACCENT_COLOR)
-
-        self.play(FadeIn(huge_text))
-        self.wait(1)
-
-        # Show Earth's mass
-        earth_mass = MathTex(
-            "M_{\\text{Earth}} = 6 \\times 10^{24} \\text{ kg}",
-            font_size=48,
-            color=ACCENT_COLOR
-        )
-        earth_mass.next_to(earth, DOWN, buff=0.3)
-
-        self.play(Write(earth_mass, run_time=1.5))
-        self.wait(2)
-
-        # Clean up (main animate_scene fade-out handles remaining mobjects)
-
 
 class VectorFormula(Scene):
     """
     Standalone scene: just the vector formula moment from Scene 3.
-
-    Shows the complete vector form of Newton's Law, highlights the
-    negative sign and r̂, then transitions to the magnitude-only version.
-
-    Useful for rendering and testing this moment in isolation.
-
-    To render:
-        python -m manim -pqh --frame_rate 15 "video_1/scene_3.py" VectorFormula
     """
 
     def construct(self):

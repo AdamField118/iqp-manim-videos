@@ -123,7 +123,7 @@ class StyledBulletPoint(VGroup):
         super().__init__(self.bullet, self.text, **kwargs)
 
 
-def create_logo(scale=1.0, logo_path="./assets/website_logo.svg"):
+def create_logo(scale=1.0, logo_path="../assets/website_logo.svg"):
     """
     Load and return the actual logo from SVG file.
     
