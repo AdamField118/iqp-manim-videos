@@ -28,7 +28,6 @@ class Scene5(Scene):
         self.play(*[FadeOut(mob) for mob in self.mobjects])
 
     def question_2_card(self):
-        # Same text style as Video 1
         question_title = StyledText("Question:")
         question_title.scale(0.8).to_edge(UP, buff=0.5).set_color(ACCENT_COLOR)
         self.play(FadeIn(question_title))
@@ -49,22 +48,22 @@ class Scene5(Scene):
         base_formula = MathTex(r"g = \frac{G M_\oplus}{R_\oplus^2}", font_size=48)
         base_formula.shift(UP * 2.2)
         self.play(FadeIn(base_formula, scale=1.1))
-        self.wait(0.5)
+        self.wait(3.0)
 
         sub_formula = MathTex(r"g' = \frac{G \cdot 2M_\oplus}{R_\oplus^2}", font_size=48)
         sub_formula.next_to(base_formula, DOWN, buff=0.45)
         self.play(FadeIn(sub_formula, shift=UP * 0.2))
-        self.wait(0.5)
+        self.wait(3.0)
 
         factor_formula = MathTex(r"g' = 2 \cdot \frac{G M_\oplus}{R_\oplus^2}", font_size=48)
         factor_formula.next_to(sub_formula, DOWN, buff=0.45)
         self.play(FadeIn(factor_formula, shift=UP * 0.2))
-        self.wait(0.5)
+        self.wait(3.0)
 
         result = MathTex(r"g' = 2g \approx 19.6\;\text{m/s}^2", font_size=56, color=ACCENT_COLOR)
         result.next_to(factor_formula, DOWN, buff=0.45)
         self.play(FadeIn(result, scale=1.1))
-        self.wait(1)
+        self.wait(3.0)
 
         note = StyledText("M changed: nothing cancels it this time.")
         note.scale(0.55).set_color(WHITE).next_to(result, DOWN, buff=0.45)

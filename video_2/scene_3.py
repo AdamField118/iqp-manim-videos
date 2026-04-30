@@ -189,7 +189,7 @@ class Scene3(Scene):
         )
 
         self.play(Create(cross1), Create(cross2))
-        self.wait(1)
+        self.wait(3.0)   # Let cancellation be seen
 
         # Result: a = GM_⊕/r²
         result = MathTex(
@@ -205,7 +205,7 @@ class Scene3(Scene):
 
         self.play(FadeIn(result, scale=1.1))
         self.play(FadeIn(no_m))
-        self.wait(3)
+        self.wait(3.0)   # Stand-alone result and text
 
         self.play(
             FadeOut(combined), FadeOut(box1), FadeOut(box2),
@@ -250,7 +250,7 @@ class Scene3(Scene):
         same_for_all.next_to(g_value, DOWN, buff=0.6)
 
         self.play(Write(same_for_all, run_time=1.2))
-        self.wait(3)
+        self.wait(3.0)   # Hold final result and text
 
         self.play(
             FadeOut(self.result_eq), FadeOut(plug_in),
