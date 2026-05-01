@@ -127,7 +127,7 @@ class Scene3(Scene):
         self.play(g_part.animate.set_color(ACCENT_COLOR), run_time=0.5)
         g_label = StyledText("Gravitational constant").scale(0.5).set_color(ACCENT_COLOR)
         g_label.next_to(g_part, UP, buff=0.5)
-        g_value = MathTex("G = 6.67 \\times 10^{-11}", font_size=36, color=ACCENT_COLOR)
+        g_value = MathTex("G = 6.67 \\times 10^{-11} \\tfrac{m^3}{kg\\cdot s^2}", font_size=36, color=ACCENT_COLOR)
         g_value.next_to(g_part, DOWN, buff=0.5)
         tiny_text = StyledText("(Very tiny number!)").scale(0.4).set_color(ACCENT_COLOR)
         tiny_text.next_to(g_value, DOWN, buff=0.1)
