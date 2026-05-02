@@ -3,7 +3,8 @@ video_3/scene_4.py
 Scene 4: Einstein's Revolutionary Idea (2:51--~4:05)
 FIXES:
   - Title scaled to fit screen.
-  - Spacetime grid now warps visibly (custom grid built from Lines).
+  - Spacetime grid uses multi-point VMobjects (not Lines) so apply_function
+    warps every intermediate sample and curvature is actually visible.
   - Green marble orbit centred on the mass and follows the warped geodesic.
   - Converging geodesics end at the mass centre.
 """
@@ -54,63 +55,110 @@ class Scene4(Scene):
         self.wait(4.0)
         self.play(FadeOut(phrase, scale=0.9), run_time=0.8)
 
-    # ── Helper: create a flat grid as a VGroup of Lines ────────────────────
-    def create_flat_grid(self, size=5, step=0.5, color=BLUE_E, opacity=0.5):
+    # ── Helper: build grid as multi-point VMobjects ─────────────────────────
+    # Each grid line is a VMobject with n_pts corner samples rather than a
+    # plain Line (which has only 2 anchor points).  apply_function then warps
+    # every intermediate sample, making the curvature clearly visible.
+    def create_flat_grid(self, size=4.5, step=0.5, color=BLUE_E, opacity=0.5):
         lines = VGroup()
+        n_pts = 60   # samples per line – more = smoother curve after warp
         for x in np.arange(-size, size + step, step):
-            lines.add(Line([x, -size, 0], [x, size, 0], stroke_color=color, stroke_opacity=opacity, stroke_width=0.8))
+            pts = [np.array([x, y, 0]) for y in np.linspace(-size, size, n_pts)]
+            vmo = VMobject(stroke_color=color, stroke_opacity=opacity, stroke_width=0.8)
+            vmo.set_points_as_corners(pts)
+            lines.add(vmo)
         for y in np.arange(-size, size + step, step):
-            lines.add(Line([-size, y, 0], [size, y, 0], stroke_color=color, stroke_opacity=opacity, stroke_width=0.8))
+            pts = [np.array([x, y, 0]) for x in np.linspace(-size, size, n_pts)]
+            vmo = VMobject(stroke_color=color, stroke_opacity=opacity, stroke_width=0.8)
+            vmo.set_points_as_corners(pts)
+            lines.add(vmo)
         return lines
 
     def spacetime_grid(self):
         title = Text("Spacetime Curvature", font_size=30, color=ACCENT_COLOR, weight=BOLD).to_edge(UP, buff=0.4)
         self.play(FadeIn(title), run_time=0.5)
 
-        # Build flat grid
-        flat_grid = self.create_flat_grid(size=4.5, step=0.5, color=BLUE_E)
-        self.play(Create(flat_grid, lag_ratio=0.02), run_time=1.2)
+        # Perspective-projection parameters
+        
+        # We fake a 3D gravity-well by mapping every grid point (x, y) to a
+        # 3D position (x, y, z_3d) where z_3d is the funnel depression, then
+        # projecting onto the screen with a tilt angle phi:
+        #   x_screen = x
+        #   y_screen = y·sin(phi) + z_3d·cos(phi)
+        # phi = 90° means looking straight down (no tilt, z invisible).
+        # phi = 0°  means looking edge-on (grid collapses to a line).
+        # phi ~ 55° gives a nice oblique view where the funnel reads clearly.
+        phi   = 55 * DEGREES
+        A     = 2.4   # funnel depth
+        sigma = 1.6   # funnel width (Gaussian σ²)
+        GRID  = 3.2   # grid half-extent (units)
+        SHIFT = UP * 0.55  # nudge whole grid upward so funnel stays in frame
 
+        def flat_proj(p):
+            """Tilt-only projection (z_3d = 0, i.e. flat sheet viewed at angle)."""
+            x, y = p[0], p[1]
+            return np.array([x, y * np.sin(phi), 0])
+
+        def warp_proj(p):
+            """Gravity-well depression + same tilt projection."""
+            x, y = p[0], p[1]
+            r     = np.sqrt(x**2 + y**2) + 0.01
+            z_3d  = -A * np.exp(-r**2 / sigma)
+            return np.array([x, y * np.sin(phi) + z_3d * np.cos(phi), 0])
+
+        # Build source grid once; create two projected copies from it so that
+        # Transform() can interpolate point-for-point between them.
+        source = Scene4.create_flat_grid(self, size=GRID, step=0.42, color=BLUE_E)
+        grid_flat   = source.copy().apply_function(flat_proj)
+        grid_warped = source.copy().apply_function(warp_proj)
+        grid_flat.shift(SHIFT)
+        grid_warped.shift(SHIFT)
+
+        # Show flat (tilted) grid
         flat_label = Text("flat spacetime", font_size=22, color=GREY_B).to_edge(DOWN, buff=0.5)
+        self.play(Create(grid_flat, lag_ratio=0.02), run_time=1.5)
         self.play(FadeIn(flat_label), run_time=0.4)
         self.wait(0.5)
         self.play(FadeOut(flat_label), run_time=0.3)
 
-        mass = Circle(0.3, fill_color="#e8a000", fill_opacity=1, stroke_color=GOLD, stroke_width=3)
-        mass.move_to(ORIGIN)
+        # Mass sits at the flat-grid centre before the warp
+        mass_flat_pos   = flat_proj(np.array([0, 0, 0])) + SHIFT
+        mass_warped_pos = warp_proj(np.array([0, 0, 0])) + SHIFT   # bottom of funnel
+
+        mass = Circle(0.28, fill_color="#e8a000", fill_opacity=1, stroke_color=GOLD, stroke_width=3)
+        mass.move_to(mass_flat_pos)
         mass_label = Text("mass", font_size=20, color=GOLD).next_to(mass, RIGHT, buff=0.25)
         self.play(GrowFromCenter(mass), FadeIn(mass_label), run_time=0.8)
 
-        # Warp function – strong, clearly visible
-        def warp(p):
-            x, y, z = p[:3]
-            r = np.sqrt(x**2 + y**2) + 0.01
-            depression = 2.5 * np.exp(-r**2 / 1.5)   # deep and wide
-            return np.array([x, y - depression, z])
-
-        # Apply warp to a copy
-        warped_grid = flat_grid.copy()
-        warped_grid.apply_function(warp)
-
+        # Transform flat -> warped (grid bends into the funnel)
         curved_label = Text("curved spacetime", font_size=22, color=BLUE_B).to_edge(DOWN, buff=0.5)
-        self.play(Transform(flat_grid, warped_grid), FadeIn(curved_label), run_time=2.0)
+        self.play(
+            Transform(grid_flat, grid_warped),
+            mass.animate.move_to(mass_warped_pos),
+            FadeIn(curved_label),
+            run_time=2.0,
+        )
         self.wait(1.5)
 
-        # Green marble on a geodesic – uses exactly the same warp
+        # Green marble orbiting the well (geodesic)
+        r_orb = 2.2   # orbital radius in grid-plane coords
+        z_orb = -A * np.exp(-r_orb**2 / sigma)   # constant z_3d on this ring
+
         def orb(t):
-            p = np.array([2.0 * np.cos(t), 2.0 * np.sin(t), 0])
-            return warp(p)
-        orbit = ParametricFunction(orb, t_range=[-PI, PI], color=GREEN, stroke_width=2)
+            x     = r_orb * np.cos(t)
+            y_raw = r_orb * np.sin(t)
+            return np.array([x, y_raw * np.sin(phi) + z_orb * np.cos(phi), 0]) + SHIFT
+
+        orbit     = ParametricFunction(orb, t_range=[-PI, PI], color=GREEN, stroke_width=2)
         small_obj = Dot(0.12, color=GREEN).move_to(orbit.get_start())
 
         self.play(FadeOut(curved_label), run_time=0.3)
-        self.play(Create(orbit, run_time=0.6))
+        self.play(Create(orbit), run_time=0.6)
         self.play(FadeIn(small_obj), run_time=0.4)
 
         geodesic_label = Text("geodesic -- straightest path through curved geometry",
                               font_size=20, color=GREEN).to_edge(DOWN, buff=0.5)
         self.play(FadeIn(geodesic_label), run_time=0.4)
-
         self.play(MoveAlongPath(small_obj, orbit), run_time=3.5, rate_func=linear)
         self.wait(0.5)
 
@@ -121,17 +169,20 @@ class Scene4(Scene):
                           font_size=20, color=YELLOW).to_edge(DOWN, buff=0.5)
         self.play(FadeIn(conv_label), run_time=0.4)
 
-        ball_a = Dot(0.14, color=YELLOW).move_to(UP * 1.8 + LEFT * 0.5)
-        ball_b = Dot(0.14, color=YELLOW).move_to(UP * 1.8 + RIGHT * 0.5)
-        geo_a = DashedLine(ball_a.get_center(), ORIGIN, color=YELLOW_A, stroke_width=1.8, dash_length=0.12)
-        geo_b = DashedLine(ball_b.get_center(), ORIGIN, color=YELLOW_A, stroke_width=1.8, dash_length=0.12)
+        # Start above the funnel on the grid surface; converge to the well bottom
+        start_a = mass_warped_pos + LEFT * 0.6 + UP * 1.6
+        start_b = mass_warped_pos + RIGHT * 0.6 + UP * 1.6
+        ball_a = Dot(0.14, color=YELLOW).move_to(start_a)
+        ball_b = Dot(0.14, color=YELLOW).move_to(start_b)
+        geo_a = DashedLine(start_a, mass_warped_pos, color=YELLOW_A, stroke_width=1.8, dash_length=0.12)
+        geo_b = DashedLine(start_b, mass_warped_pos, color=YELLOW_A, stroke_width=1.8, dash_length=0.12)
 
         self.play(FadeIn(ball_a), FadeIn(ball_b), Create(geo_a), Create(geo_b), run_time=0.8)
-        self.play(ball_a.animate.move_to(ORIGIN), ball_b.animate.move_to(ORIGIN),
+        self.play(ball_a.animate.move_to(mass_warped_pos), ball_b.animate.move_to(mass_warped_pos),
                   run_time=2.8, rate_func=rate_functions.ease_in_sine)
         self.wait(2.0)
 
-        self.play(*[FadeOut(m) for m in [title, flat_grid, mass, mass_label,
+        self.play(*[FadeOut(m) for m in [title, grid_flat, mass, mass_label,
                                           ball_a, ball_b, geo_a, geo_b, conv_label]], run_time=0.8)
 
     def wheeler_quote(self):
