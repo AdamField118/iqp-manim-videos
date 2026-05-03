@@ -4,6 +4,8 @@ Scene 5: Confirmation and Real-World Consequences (4:05--4:55)
 FIXES:
   - Lensing geometry correct: source, sun, observer colinear; apparent line stays in frame.
   - All checkmark labels moved away from citation texts (spaced vertically).
+  - Perihelion dot tracked analytically (rotation angle) instead of get_right()
+    on the bounding box, which only moved horizontally.
 """
 
 import sys
@@ -41,47 +43,95 @@ class Scene5(Scene):
         self.play(FadeIn(banner), run_time=0.6)
 
         # ── 1. Light bending ──────────────────────────────────────────────────
-        sun = Circle(0.5, fill_color=YELLOW, fill_opacity=1, stroke_color=GOLD, stroke_width=3).move_to(ORIGIN+UP*0.3)
-        # Source at left, observer at right, both above the sun
-        source_pos = np.array([-4.5, 1.0, 0])
-        obs_pos = np.array([4.5, 1.0, 0])
+        # Layout matches the JS demo: Observer (left) — BH lens (centre) — Star (right)
+        # all on the optical axis.  Light bows ABOVE the axis (attractive gravity).
+        # Back-projected dashed line → apparent position directly above actual.
+        axis_y = -0.4   # slightly below centre so arc has headroom above
+        obs_p  = np.array([-6.0, axis_y, 0])
+        src_p  = np.array([ 5.8, axis_y, 0])
+        lens_p = np.array([ 0.0, axis_y, 0])
+        bend   = 1.35   # control-point height above axis
+        app_p  = np.array([src_p[0], axis_y + 2 * bend, 0])  # directly above actual
 
-        # Parametric curve from source to observer, bending downward near the sun
-        def ray_func(t):
-            # t from 0 to 1
-            x = -4.5 + 9.0 * t
-            # simple quadratic bend
-            y_bend = 0.8 * (t - 0.5)**2   # a shallow dip near the centre
-            y = 1.0 - y_bend
-            return np.array([x, y, 0])
+        # Warped spacetime grid pulled toward the black hole
+        grid_lines = VGroup()
+        n_pts, gstep, x_ext, y_ext = 30, 0.55, 6.8, 3.4
+        def warp_bh(q):
+            dx, dy = q[0] - lens_p[0], q[1] - lens_p[1]
+            r  = np.sqrt(dx*dx + dy*dy) + 0.01
+            pull = 1.6 / (r*r + 0.7)
+            f  = pull / (1 + pull)
+            return np.array([q[0] + (lens_p[0]-q[0])*f*0.65,
+                             q[1] + (lens_p[1]-q[1])*f*0.65, 0])
+        for xv in np.arange(-x_ext, x_ext + gstep, gstep):
+            pts = [warp_bh([xv, yv, 0]) for yv in np.linspace(-y_ext, y_ext, n_pts)]
+            vl  = VMobject(stroke_color=BLUE_E, stroke_opacity=0.22, stroke_width=0.7)
+            vl.set_points_as_corners(pts)
+            grid_lines.add(vl)
+        for yv in np.arange(-y_ext, y_ext + gstep, gstep):
+            pts = [warp_bh([xv, yv, 0]) for xv in np.linspace(-x_ext, x_ext, n_pts)]
+            vl  = VMobject(stroke_color=BLUE_E, stroke_opacity=0.22, stroke_width=0.7)
+            vl.set_points_as_corners(pts)
+            grid_lines.add(vl)
+        self.play(FadeIn(grid_lines), run_time=0.5)
 
-        ray_path = ParametricFunction(ray_func, t_range=[0,1], color=YELLOW_A, stroke_width=3)
-        ray_start_dot = Dot(source_pos, color=YELLOW_A, radius=0.05)
-        ray_end_dot = Dot(obs_pos, color=YELLOW_A, radius=0.05)
+        # Black hole: dark core + orange photon-ring glow (Annulus)
+        bh_glow = Annulus(inner_radius=0.22, outer_radius=0.62,
+                          fill_color=ORANGE, fill_opacity=0.6, stroke_width=0)
+        bh_glow.move_to(lens_p)
+        bh_core = Circle(0.22, fill_color=BLACK, fill_opacity=1.0, stroke_width=0)
+        bh_core.move_to(lens_p)
+        self.play(GrowFromCenter(bh_glow), GrowFromCenter(bh_core), run_time=0.6)
 
-        # Tangent at observer: approximate with a point very near the end
-        near_end = ray_func(0.995)
-        tangent_dir = obs_pos - near_end
-        # Draw dashed line back from observer along this tangent
-        apparent_line = DashedLine(
-            obs_pos,
-            obs_pos - 3.0 * normalize(tangent_dir),
-            color=GREY, stroke_width=1.5, dash_length=0.15
-        )
+        # Actual star (gold, right, on axis) + observer (left)
+        star_actual = Dot(src_p, color=GOLD, radius=0.14)
+        obs_dot     = Dot(obs_p, color=WHITE, radius=0.07)
+        obs_lbl     = Text("Observer", font_size=17, color=GREY_B).next_to(obs_dot, DOWN, buff=0.12)
+        self.play(FadeIn(star_actual), FadeIn(obs_dot), FadeIn(obs_lbl), run_time=0.4)
+
+        # Light path: quadratic bezier bowing above the axis over the lens.
+        # P(t) = (1-t)² src + 2t(1-t) cp + t² obs
+        # Control point is directly above the lens at height +bend.
+        cp_lensing = np.array([lens_p[0], axis_y + bend, 0])
+        def arc_func(t):
+            return (1-t)**2 * src_p + 2*t*(1-t)*cp_lensing + t**2 * obs_p
+        ray_glow = ParametricFunction(arc_func, t_range=[0, 1],
+                                      color=YELLOW, stroke_width=8, stroke_opacity=0.13)
+        ray_path = ParametricFunction(arc_func, t_range=[0, 1],
+                                      color=YELLOW_A, stroke_width=2.5)
+        self.play(Create(ray_glow), Create(ray_path), run_time=1.2)
+
+        # Back-projection dashed line: Observer looks backward along incoming ray.
+        # For a symmetric bezier the apparent position is analytically at
+        # (src_x, axis_y + 2*bend) — the line runs from obs through app and a
+        # little beyond so the direction reads clearly.
+        dash_end = app_p + normalize(app_p - obs_p) * 0.5
+        apparent_line = DashedLine(obs_p, dash_end,
+                                   color=GREY_B, stroke_width=1.7, dash_length=0.18)
+        self.play(Create(apparent_line), run_time=0.8)
+
+        # Apparent star directly above actual + thin vertical guide
+        star_app   = Dot(app_p, color=GOLD, radius=0.13)
+        app_label  = Text("Apparent", font_size=17, color=GOLD).next_to(star_app, RIGHT, buff=0.12)
+        act_label  = Text("Actual",   font_size=17, color=GOLD).next_to(star_actual, RIGHT, buff=0.12)
+        vert_guide = DashedLine(src_p, app_p, color=YELLOW_A,
+                                stroke_width=0.9, stroke_opacity=0.28, dash_length=0.1)
+        self.play(FadeIn(star_app), FadeIn(app_label), FadeIn(act_label),
+                  Create(vert_guide), run_time=0.7)
 
         eddington_lbl = Text("Eddington, 1919", font_size=23, color=WHITE)
-        eddington_lbl.to_edge(DOWN, buff=1.5)  # move lower to make room for checkmark
-        self.play(FadeIn(sun), run_time=0.5)
-        self.play(Create(ray_path), FadeIn(ray_start_dot), FadeIn(ray_end_dot), run_time=1.0)
-        self.play(Create(apparent_line), FadeIn(eddington_lbl), run_time=0.8)
+        eddington_lbl.to_edge(DOWN, buff=1.5)
+        self.play(FadeIn(eddington_lbl), run_time=0.4)
 
-        # Checkmark placed above the citation (vertically separated)
         tick1, lbl1 = checkmark_label("light bending confirmed",
                                       eddington_lbl.get_center() + UP * 0.7)
         self.play(Create(tick1), FadeIn(lbl1), run_time=0.6)
         self.wait(3.5)
-        self.play(FadeOut(sun), FadeOut(ray_path), FadeOut(ray_start_dot),
-                  FadeOut(ray_end_dot), FadeOut(apparent_line), FadeOut(eddington_lbl),
+        self.play(FadeOut(grid_lines), FadeOut(bh_glow), FadeOut(bh_core),
+                  FadeOut(star_actual), FadeOut(obs_dot), FadeOut(obs_lbl),
+                  FadeOut(ray_path), FadeOut(ray_glow), FadeOut(apparent_line),
+                  FadeOut(star_app), FadeOut(app_label), FadeOut(act_label),
+                  FadeOut(vert_guide), FadeOut(eddington_lbl),
                   FadeOut(tick1), FadeOut(lbl1), run_time=0.6)
 
         # ── 2. Mercury precession ─────────────────────────────────────────────
@@ -93,11 +143,22 @@ class Scene5(Scene):
         obs_text = Text("Observed: 43 arcsec/century", font_size=22, color=WHITE).to_edge(DOWN, buff=1.5)
         self.play(FadeIn(sun2), Create(obs_orbit), FadeIn(peri_dot), FadeIn(peri_lbl), FadeIn(obs_text), run_time=0.8)
 
-        # Precession
+        # Mirror Manim's own rotate() call exactly: grab the initial tip from
+        # get_right(), store its offset from the sun, then apply a 2-D rotation
+        # matrix — identical to what rotate() does to the orbit itself.
+        sun2_np     = np.array(sun2.get_center())
+        peri_offset = np.array(obs_orbit.get_right()) - sun2_np
         for i in range(4):
+            total_angle = PI/60 * (i+1)
             new_orbit = Ellipse(5.0, 3.0, color=GREEN, stroke_width=2.5).move_to(sun2.get_center()+RIGHT*0.55)
-            new_orbit.rotate(PI/60*(i+1), about_point=sun2.get_center())
-            new_dot = Dot(new_orbit.get_right(), color=RED, radius=0.08)
+            new_orbit.rotate(total_angle, about_point=sun2.get_center())
+            c, s = np.cos(total_angle), np.sin(total_angle)
+            peri_pos = sun2_np + np.array([
+                c * peri_offset[0] - s * peri_offset[1],
+                s * peri_offset[0] + c * peri_offset[1],
+                0,
+            ])
+            new_dot = Dot(peri_pos, color=RED, radius=0.08)
             new_lbl = Text("perihelion", font_size=18, color=RED).next_to(new_dot, UP, buff=0.15)
             self.play(FadeOut(obs_orbit), FadeOut(peri_dot), FadeOut(peri_lbl),
                       Create(new_orbit), FadeIn(new_dot), FadeIn(new_lbl), run_time=0.3)

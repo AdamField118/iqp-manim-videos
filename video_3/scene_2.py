@@ -156,10 +156,23 @@ class Scene2(Scene):
         self.wait(1.0)
 
         annotation = MathTex(r"43 \text{ arcsec / century -- unexplained by Newton}", font_size=26, color=RED).to_edge(UP, buff=1.3)
+        # Mirror Manim's own rotate() call: take the exact initial tip reported
+        # by get_right(), store its offset from the sun, then apply a 2-D
+        # rotation matrix for each cumulative angle.  This is pixel-perfect
+        # because we're doing the identical transform Manim does to the orbit.
+        sun_np_2    = np.array(sun.get_center())
+        peri_offset = np.array(observed_orbit.get_right()) - sun_np_2
         for i in range(5):
+            total_angle = PI/30 * (i+1)
             new_orbit = Ellipse(5.5, 3.2, color=YELLOW, stroke_width=2.5).move_to(sun.get_center() + RIGHT * 0.55)
-            new_orbit.rotate(PI/30 * (i+1), about_point=sun.get_center())
-            new_dot = Dot(new_orbit.get_right(), color=RED, radius=0.1)
+            new_orbit.rotate(total_angle, about_point=sun.get_center())
+            c, s = np.cos(total_angle), np.sin(total_angle)
+            peri_pos = sun_np_2 + np.array([
+                c * peri_offset[0] - s * peri_offset[1],
+                s * peri_offset[0] + c * peri_offset[1],
+                0,
+            ])
+            new_dot = Dot(peri_pos, color=RED, radius=0.1)
             new_lbl = Text("perihelion", font_size=18, color=RED).next_to(new_dot, UP, buff=0.15)
             self.play(FadeOut(observed_orbit), FadeOut(perihelion_dot), FadeOut(perihelion_label),
                       Create(new_orbit), FadeIn(new_dot), FadeIn(new_lbl), run_time=0.3)
