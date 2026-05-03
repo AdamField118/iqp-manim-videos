@@ -82,18 +82,17 @@ class Scene3(Scene):
         formula.next_to(tidal_text, UP, buff=0.5)
         self.play(FadeIn(formula, scale=1.1), run_time=0.8)
 
-        m_box = SurroundingRectangle(formula[0][8], color=YELLOW, buff=0.08)
         r_box = SurroundingRectangle(formula[0][10:12], color=RED, buff=0.08)
         cube_note = Text("cube -- falls off faster than gravity itself",
                          font_size=20, color=RED).next_to(formula, UP, buff=0.3)
-        self.play(Create(m_box), Create(r_box), run_time=0.6)
+        self.play(Create(r_box), run_time=0.6)
         self.play(FadeIn(cube_note), run_time=0.5)
         self.wait(4.0)
 
         self.play(*[FadeOut(m) for m in [title, earth, earth_label, moon, moon_label,
                                           arrow_near, arrow_ctr, arrow_far,
                                           lbl_near, lbl_ctr, lbl_far,
-                                          tidal_text, formula, m_box, r_box, cube_note]], run_time=0.8)
+                                          tidal_text, formula, r_box, cube_note]], run_time=0.8)
 
     # ── Question 1 ──────────────────────────────────────────────────────────
     def question_1_card(self):
