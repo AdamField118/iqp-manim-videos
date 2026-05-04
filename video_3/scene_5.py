@@ -43,7 +43,7 @@ class Scene5(Scene):
         self.play(FadeIn(banner), run_time=0.6)
 
         # ── 1. Light bending ──────────────────────────────────────────────────
-        # Layout matches the JS demo: Observer (left) — BH lens (centre) — Star (right)
+        # Layout matches the JS demo: Observer (left) — Sun lens (centre) — Star (right)
         # all on the optical axis.  Light bows ABOVE the axis (attractive gravity).
         # Back-projected dashed line → apparent position directly above actual.
         axis_y = -0.4   # slightly below centre so arc has headroom above
@@ -53,7 +53,7 @@ class Scene5(Scene):
         bend   = 1.35   # control-point height above axis
         app_p  = np.array([src_p[0], axis_y + 2 * bend, 0])  # directly above actual
 
-        # Warped spacetime grid pulled toward the black hole
+        # Warped spacetime grid pulled toward the Sun
         grid_lines = VGroup()
         n_pts, gstep, x_ext, y_ext = 30, 0.55, 6.8, 3.4
         def warp_bh(q):
@@ -75,13 +75,11 @@ class Scene5(Scene):
             grid_lines.add(vl)
         self.play(FadeIn(grid_lines), run_time=0.5)
 
-        # Black hole: dark core + orange photon-ring glow (Annulus)
-        bh_glow = Annulus(inner_radius=0.22, outer_radius=0.62,
-                          fill_color=ORANGE, fill_opacity=0.6, stroke_width=0)
-        bh_glow.move_to(lens_p)
-        bh_core = Circle(0.22, fill_color=BLACK, fill_opacity=1.0, stroke_width=0)
-        bh_core.move_to(lens_p)
-        self.play(GrowFromCenter(bh_glow), GrowFromCenter(bh_core), run_time=0.6)
+        # Sun: plain yellow circle
+        sun_lens = Circle(0.45, fill_color=YELLOW, fill_opacity=1,
+                          stroke_color=GOLD, stroke_width=3)
+        sun_lens.move_to(lens_p)
+        self.play(GrowFromCenter(sun_lens), run_time=0.6)
 
         # Actual star (gold, right, on axis) + observer (left)
         star_actual = Dot(src_p, color=GOLD, radius=0.14)
@@ -127,7 +125,7 @@ class Scene5(Scene):
                                       eddington_lbl.get_center() + UP * 0.7)
         self.play(Create(tick1), FadeIn(lbl1), run_time=0.6)
         self.wait(3.5)
-        self.play(FadeOut(grid_lines), FadeOut(bh_glow), FadeOut(bh_core),
+        self.play(FadeOut(grid_lines), FadeOut(sun_lens),
                   FadeOut(star_actual), FadeOut(obs_dot), FadeOut(obs_lbl),
                   FadeOut(ray_path), FadeOut(ray_glow), FadeOut(apparent_line),
                   FadeOut(star_app), FadeOut(app_label), FadeOut(act_label),

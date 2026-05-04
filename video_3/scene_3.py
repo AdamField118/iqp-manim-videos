@@ -190,7 +190,7 @@ class Scene3(Scene):
                   run_time=3.5, rate_func=rate_functions.ease_in_sine)
 
         conclusion = Text("Tidal forces can't be erased by free fall.",
-                          font_size=26, color=RED, weight=BOLD).to_edge(DOWN, buff=1.0)
+                          font_size=26, color=RED, weight=BOLD).to_edge(DOWN, buff=2.0)
         self.play(FadeIn(conclusion, scale=1.05), run_time=0.8)
         self.wait(4.0)
 
